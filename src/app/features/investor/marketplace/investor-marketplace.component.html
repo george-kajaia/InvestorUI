@@ -1,0 +1,211 @@
+<div class="marketplace-container">
+  <h2>Investor Marketplace</h2>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'yourTokens'" (click)="setTab('yourTokens')">
+      Your Service Tokens
+    </button>
+    <button class="tab" [class.active]="activeTab === 'primaryMarket'" (click)="setTab('primaryMarket')">
+      Primary Market
+    </button>
+    <button class="tab" [class.active]="activeTab === 'secondaryMarket'" (click)="setTab('secondaryMarket')">
+      Secondary Market
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="info">Loading...</div>
+
+  <div class="filters">
+    <label>
+      Company
+      <select [(ngModel)]="marketCompanyId">
+        <option [ngValue]="-1">All</option>
+        <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }} ({{ c.id }})</option>
+      </select>
+    </label>
+
+    <label>
+      Request Id (optional)
+      <input type="number" [(ngModel)]="marketRequestId" min="-1" />
+    </label>
+
+    <button class="secondary" (click)="applyFilters()">
+      Apply
+    </button>
+
+    <button class="secondary" (click)="refreshFilters()">
+      Refresh
+    </button>
+
+    <!-- Toolbar actions (moved from table "Actions" column) -->
+    <button
+      *ngIf="activeTab === 'yourTokens'"
+      class="secondary"
+      (click)="markSelectedForResell()"
+      [disabled]="!canMarkForResell">
+      Mark for resell
+    </button>
+
+    <button
+      *ngIf="activeTab === 'yourTokens'"
+      class="secondary"
+      (click)="cancelSelectedReselling()"
+      [disabled]="!canCancelReselling">
+      Cancel reselling
+    </button>
+
+    <button
+      *ngIf="activeTab === 'primaryMarket'"
+      class="secondary"
+      (click)="buySelectedPrimary()"
+      [disabled]="!canBuyPrimary">
+      Buy
+    </button>
+
+    <button
+      *ngIf="activeTab === 'secondaryMarket'"
+      class="secondary"
+      (click)="buySelectedSecondary()"
+      [disabled]="!canBuySecondary">
+      Buy
+    </button>
+  </div>
+
+  <!-- Your tokens -->
+  <section *ngIf="activeTab === 'yourTokens'" class="panel">
+    <div class="panel-header">
+      <h3>Your Tokens</h3>
+    </div>
+
+    <table *ngIf="!loading && filteredYourTokens.length > 0" class="grid">
+      <thead>
+        <tr>
+          <th>Token Id</th>
+          <th>RowVersion</th>
+          <th>Company</th>
+          <th>Request</th>
+          <th>Product</th>
+          <th>Status</th>
+          <th>Count</th>
+          <th>ServiceCount</th>
+          <th>Schedule</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let t of filteredYourTokens"
+          class="selectable-row"
+          [class.selected]="isSelectedYour(t)"
+          (click)="selectYourToken(t)">
+          <td>{{ t.id }}</td>
+          <td>{{ t.rowVersion }}</td>
+          <td>{{ t.companyName }} ({{ t.companyId }})</td>
+          <td>{{ t.requestId }}</td>
+          <td>{{ t.productId }}</td>
+          <td>{{ tokenStatusLabel(t.status) }}</td>
+          <td>{{ t.count }}</td>
+          <td>{{ t.serviceCount }}</td>
+          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+          <td>{{ t.startDate | date: 'medium' }}</td>
+          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && filteredYourTokens.length === 0" class="muted">No tokens found.</div>
+  </section>
+
+  <!-- Primary market -->
+  <section *ngIf="activeTab === 'primaryMarket'" class="panel">
+    <div class="panel-header">
+      <h3>Primary Market Tokens</h3>
+    </div>
+
+    <table *ngIf="!loading && primaryMarketTokens.length > 0" class="grid">
+      <thead>
+        <tr>
+          <th>Token Id</th>
+          <th>RowVersion</th>
+          <th>Company</th>
+          <th>Request</th>
+          <th>Product</th>
+          <th>Count</th>
+          <th>ServiceCount</th>
+          <th>Schedule</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let t of primaryMarketTokens"
+          class="selectable-row"
+          [class.selected]="isSelectedPrimary(t)"
+          (click)="selectPrimaryToken(t)">
+          <td>{{ t.id }}</td>
+          <td>{{ t.rowVersion }}</td>
+          <td>{{ t.companyName }} ({{ t.companyId }})</td>
+          <td>{{ t.requestId }}</td>
+          <td>{{ t.productId }}</td>
+          <td>{{ t.count }}</td>
+          <td>{{ t.serviceCount }}</td>
+          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+          <td>{{ t.startDate | date: 'medium' }}</td>
+          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && primaryMarketTokens.length === 0" class="muted">No tokens found.</div>
+  </section>
+
+  <!-- Secondary market -->
+  <section *ngIf="activeTab === 'secondaryMarket'" class="panel">
+    <div class="panel-header">
+      <h3>Secondary Market Tokens</h3>
+    </div>
+
+    <table *ngIf="!loading && secondaryMarketTokens.length > 0" class="grid">
+      <thead>
+        <tr>
+          <th>Token Id</th>
+          <th>RowVersion</th>
+          <th>Company</th>
+          <th>Request</th>
+          <th>Product</th>
+          <th>Owner</th>
+          <th>Count</th>
+          <th>ServiceCount</th>
+          <th>Schedule</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let t of secondaryMarketTokens"
+          class="selectable-row"
+          [class.selected]="isSelectedSecondary(t)"
+          (click)="selectSecondaryToken(t)">
+          <td>{{ t.id }}</td>
+          <td>{{ t.rowVersion }}</td>
+          <td>{{ t.companyName }} ({{ t.companyId }})</td>
+          <td>{{ t.requestId }}</td>
+          <td>{{ t.productId }}</td>
+          <td>{{ t.ownerPublicKey }}</td>
+          <td>{{ t.count }}</td>
+          <td>{{ t.serviceCount }}</td>
+          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+          <td>{{ t.startDate | date: 'medium' }}</td>
+          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && secondaryMarketTokens.length === 0" class="muted">No tokens found.</div>
+  </section>
+
+  <a routerLink="/" class="back-link">Back to main page</a>
+</div>

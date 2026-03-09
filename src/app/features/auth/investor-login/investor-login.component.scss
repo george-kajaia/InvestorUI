@@ -1,0 +1,167 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+// User theme colors - Light with blue tint (same as company - consistent user experience)
+$auth-bg-base: #f8fafc;
+$auth-bg-surface: #ffffff;
+$auth-bg-elevated: #f0f9ff;
+$auth-primary: #06b6d4;
+$auth-secondary: #3b82f6;
+$auth-text-primary: #0c4a6e;
+$auth-text-secondary: #0369a1;
+$auth-text-muted: #64748b;
+$auth-border: #bae6fd;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 50%, #ecfeff 100%);
+  @include flex-center;
+  padding: $space-6;
+}
+
+// ============================================
+// Auth Container Block
+// ============================================
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  padding: $space-8;
+  background: $auth-bg-surface;
+  border: 1px solid $auth-border;
+  border-radius: $radius-xl;
+  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  h2 {
+    @include text-title;
+    text-align: center;
+    margin-bottom: $space-4;
+    color: $auth-text-primary;
+  }
+}
+
+// ============================================
+// Toggle Button
+// ============================================
+.toggle-btn {
+  display: block;
+  width: 100%;
+  padding: $space-2 $space-4;
+  margin-bottom: $space-6;
+  background: $auth-bg-elevated;
+  border: 1px solid $auth-border;
+  border-radius: $radius-md;
+  color: $auth-text-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-base;
+  @include hover-lift;
+
+  &:hover {
+    background: rgba($auth-primary, 0.1);
+    border-color: $auth-primary;
+    color: $auth-text-primary;
+  }
+}
+
+// ============================================
+// Auth Form Block
+// ============================================
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $auth-text-muted;
+  }
+
+  input {
+    padding: $space-3;
+    background: $auth-bg-surface;
+    border: 1px solid $auth-border;
+    border-radius: $radius-md;
+    color: $auth-text-primary;
+    font-size: $font-size-sm;
+    transition: all $transition-base;
+
+    &::placeholder {
+      color: $auth-text-muted;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $auth-primary;
+      box-shadow: 0 0 0 3px rgba($auth-primary, 0.1);
+    }
+  }
+
+  button[type="submit"] {
+    margin-top: $space-2;
+    padding: $space-3 $space-4;
+    background: linear-gradient(135deg, $auth-primary, $auth-secondary);
+    border: none;
+    border-radius: $radius-md;
+    color: #ffffff;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all $transition-base;
+    @include hover-lift;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 16px rgba($auth-primary, 0.35);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ============================================
+// Messages
+// ============================================
+.info {
+  margin-top: $space-4;
+  padding: $space-3;
+  background: rgba($success-500, 0.1);
+  border: 1px solid rgba($success-500, 0.3);
+  border-radius: $radius-md;
+  color: $success-500;
+  font-size: $font-size-sm;
+}
+
+.error {
+  margin-top: $space-4;
+  padding: $space-3;
+  background: rgba($error-500, 0.1);
+  border: 1px solid rgba($error-500, 0.3);
+  border-radius: $radius-md;
+  color: $error-500;
+  font-size: $font-size-sm;
+}
+
+// ============================================
+// Back Link
+// ============================================
+.back-link {
+  display: inline-block;
+  margin-top: $space-6;
+  color: $auth-primary;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  transition: color $transition-base;
+
+  &:hover {
+    color: darken($auth-primary, 10%);
+    text-decoration: underline;
+  }
+}

@@ -1,0 +1,179 @@
+@use '../../../../styles/variables' as *;
+
+.toast-container {
+  position: fixed;
+  top: $space-6;
+  right: $space-6;
+  z-index: 700;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  pointer-events: none;
+  max-width: 420px;
+
+  @media (max-width: $breakpoint-sm) {
+    left: $space-4;
+    right: $space-4;
+    max-width: none;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-radius: $radius-lg;
+  background: white;
+  box-shadow: $shadow-lg;
+  pointer-events: auto;
+  animation: slideIn 0.3s ease;
+  border-left: 4px solid;
+  outline: none;
+
+  // Focus state for keyboard navigation
+  &:focus-visible {
+    box-shadow: $shadow-lg, 0 0 0 3px rgba($info-500, 0.4);
+  }
+
+  &--success {
+    border-left-color: $success-500;
+    background: linear-gradient(135deg, rgba($success-500, 0.08) 0%, white 100%);
+
+    .toast__icon {
+      color: $success-500;
+      background: rgba($success-500, 0.12);
+    }
+
+    .toast__action {
+      color: $success-600;
+      &:hover { background: rgba($success-500, 0.1); }
+    }
+  }
+
+  &--error {
+    border-left-color: $error-500;
+    background: linear-gradient(135deg, rgba($error-500, 0.08) 0%, white 100%);
+
+    .toast__icon {
+      color: $error-500;
+      background: rgba($error-500, 0.12);
+    }
+
+    .toast__action {
+      color: $error-600;
+      &:hover { background: rgba($error-500, 0.1); }
+    }
+  }
+
+  &--warning {
+    border-left-color: $warning-500;
+    background: linear-gradient(135deg, rgba($warning-500, 0.08) 0%, white 100%);
+
+    .toast__icon {
+      color: $warning-500;
+      background: rgba($warning-500, 0.12);
+    }
+
+    .toast__action {
+      color: $warning-600;
+      &:hover { background: rgba($warning-500, 0.1); }
+    }
+  }
+
+  &--info {
+    border-left-color: $info-500;
+    background: linear-gradient(135deg, rgba($info-500, 0.08) 0%, white 100%);
+
+    .toast__icon {
+      color: $info-500;
+      background: rgba($info-500, 0.12);
+    }
+
+    .toast__action {
+      color: $info-600;
+      &:hover { background: rgba($info-500, 0.1); }
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-md;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__message {
+    flex: 1;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $neutral-800;
+    line-height: $line-height-base;
+  }
+
+  &__action {
+    flex-shrink: 0;
+    padding: $space-1 $space-3;
+    border: none;
+    background: transparent;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
+  &__close {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: $radius-md;
+    cursor: pointer;
+    color: $neutral-400;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $neutral-100;
+      color: $neutral-600;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $info-500;
+      outline-offset: 2px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,358 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+// User theme colors - Light with blue tint (consistent with company dashboard)
+$market-bg-base: #f8fafc;
+$market-bg-surface: #ffffff;
+$market-bg-elevated: #f0f9ff;
+$market-bg-hover: #e0f2fe;
+$market-primary: #06b6d4;
+$market-secondary: #3b82f6;
+$market-accent: #10b981;
+$market-text-primary: #0c4a6e;
+$market-text-secondary: #0369a1;
+$market-text-muted: #64748b;
+$market-border-subtle: #e0f2fe;
+$market-border-default: #bae6fd;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: $market-bg-base;
+  color: $market-text-primary;
+  font-family: $font-family-base;
+}
+
+// ============================================
+// Marketplace Container Block
+// ============================================
+.marketplace-container {
+  @include container;
+  padding-block: $space-8;
+
+  > h2 {
+    @include text-title;
+    margin-bottom: $space-4;
+  }
+}
+
+// ============================================
+// Investor Info Block
+// ============================================
+.investor-info {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-6;
+  padding: $space-3 $space-4;
+  background: $market-bg-surface;
+  border: 1px solid $market-border-subtle;
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  color: $market-text-muted;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.investor-name {
+  font-weight: $font-weight-semibold;
+  color: $market-primary;
+}
+
+// ============================================
+// Tabs Block
+// ============================================
+.tabs {
+  display: flex;
+  gap: $space-2;
+  margin-bottom: $space-6;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid $market-border-subtle;
+}
+
+.tab {
+  padding: $space-2 $space-4;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $market-text-secondary;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover:not(.active) {
+    background: $market-primary;
+    color: #ffffff;
+  }
+
+  &.active {
+    background: linear-gradient(135deg, $market-primary, $market-secondary);
+    color: #ffffff;
+  }
+}
+
+// ============================================
+// Tab Content Block
+// ============================================
+.tab-content {
+  padding: $space-5;
+  background: $market-bg-surface;
+  border: 1px solid $market-border-subtle;
+  border-radius: $radius-lg;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+// ============================================
+// Selector Block
+// ============================================
+.selector {
+  margin-bottom: $space-4;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    font-size: $font-size-sm;
+    color: $market-text-muted;
+  }
+
+  select {
+    padding: $space-2 $space-3;
+    background: $market-bg-surface;
+    border: 1px solid $market-border-default;
+    border-radius: $radius-md;
+    color: $market-text-primary;
+    font-size: $font-size-sm;
+    cursor: pointer;
+    transition: all $transition-base;
+    min-width: 200px;
+
+    &:focus {
+      outline: none;
+      border-color: $market-primary;
+      box-shadow: 0 0 0 3px rgba($market-primary, 0.1);
+    }
+  }
+}
+
+// ============================================
+// Table (Grid) Block
+// ============================================
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  background: $market-bg-surface;
+  border-radius: $radius-md;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  th,
+  td {
+    padding: $space-3;
+    text-align: left;
+    font-size: $font-size-sm;
+    border-bottom: 1px solid $market-border-subtle;
+  }
+
+  th {
+    background: $market-bg-elevated;
+    color: $market-text-secondary;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    color: $market-text-primary;
+  }
+
+  tbody tr {
+    transition: all $transition-fast;
+
+    &:hover {
+      background: rgba($market-primary, 0.08);
+    }
+  }
+}
+
+// Click-to-select rows (actions are in the top toolbar)
+.selectable-row {
+  cursor: pointer;
+}
+
+.selectable-row.selected {
+  background: rgba($market-secondary, 0.16) !important;
+}
+
+// ============================================
+// Action Buttons
+// ============================================
+.action-btn {
+  padding: $space-1 $space-3;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  border: none;
+  transition: all $transition-base;
+  @include hover-lift;
+
+  &.primary {
+    background: linear-gradient(135deg, $market-accent, $market-primary);
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba($market-accent, 0.35);
+    }
+  }
+
+  &.secondary {
+    background: linear-gradient(135deg, $warning-500, $warning-400);
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba($warning-500, 0.35);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ============================================
+// Messages
+// ============================================
+.info {
+  padding: $space-3 $space-4;
+  background: rgba($market-primary, 0.1);
+  border: 1px solid rgba($market-primary, 0.3);
+  border-radius: $radius-md;
+  color: $market-primary;
+  font-size: $font-size-sm;
+}
+
+.error {
+  padding: $space-3 $space-4;
+  background: rgba($error-500, 0.1);
+  border: 1px solid rgba($error-500, 0.3);
+  border-radius: $radius-md;
+  color: $error-400;
+  font-size: $font-size-sm;
+}
+
+// ============================================
+// Utility
+// ============================================
+.mono {
+  @include text-mono;
+  word-break: break-all;
+  max-width: 120px;
+  @include truncate;
+}
+
+// ============================================
+// Filters + Panels (matches current template)
+// ============================================
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $space-3;
+  margin-bottom: $space-5;
+  padding: $space-4;
+  background: $market-bg-surface;
+  border: 1px solid $market-border-subtle;
+  border-radius: $radius-lg;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    font-size: $font-size-sm;
+    color: $market-text-muted;
+    min-width: 220px;
+  }
+
+  select,
+  input {
+    padding: $space-2 $space-3;
+    background: $market-bg-surface;
+    border: 1px solid $market-border-default;
+    border-radius: $radius-md;
+    color: $market-text-primary;
+    font-size: $font-size-sm;
+    transition: all $transition-base;
+
+    &:focus {
+      outline: none;
+      border-color: $market-primary;
+      box-shadow: 0 0 0 3px rgba($market-primary, 0.1);
+    }
+  }
+}
+
+.panel {
+  padding: $space-5;
+  background: $market-bg-surface;
+  border: 1px solid $market-border-subtle;
+  border-radius: $radius-lg;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-bottom: $space-4;
+
+  h3 {
+    margin: 0;
+    font-weight: $font-weight-semibold;
+    color: $market-text-secondary;
+  }
+}
+
+.muted {
+  margin-top: $space-3;
+  color: $market-text-muted;
+  font-size: $font-size-sm;
+}
+
+button.secondary {
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-full;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #ffffff;
+  background: linear-gradient(135deg, $market-secondary, $market-primary);
+  transition: all $transition-base;
+  @include hover-lift;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 18px rgba($market-secondary, 0.25);
+  }
+
+  // Make enabled/disabled states visually obvious (requested)
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 1; // rely on color change instead of fading
+    color: $market-text-muted;
+    background: linear-gradient(135deg, #cbd5e1, #e2e8f0);
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.action-col {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
