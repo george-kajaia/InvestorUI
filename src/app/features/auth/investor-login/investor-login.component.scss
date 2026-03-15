@@ -1,167 +1,135 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/mixins' as *;
 
-// User theme colors - Light with blue tint (same as company - consistent user experience)
-$auth-bg-base: #f8fafc;
-$auth-bg-surface: #ffffff;
-$auth-bg-elevated: #f0f9ff;
-$auth-primary: #06b6d4;
-$auth-secondary: #3b82f6;
-$auth-text-primary: #0c4a6e;
-$auth-text-secondary: #0369a1;
-$auth-text-muted: #64748b;
-$auth-border: #bae6fd;
+$primary:      #059669;
+$primary-dark: #047857;
+$primary-bg:   #f0fdf4;
+$border:       #6ee7b7;
+$surface:      #ffffff;
+$text:         #064e3b;
+$text-muted:   #64748b;
 
 :host {
-  display: block;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 50%, #ecfeff 100%);
-  @include flex-center;
-  padding: $space-6;
-}
-
-// ============================================
-// Auth Container Block
-// ============================================
-.auth-container {
-  width: 100%;
-  max-width: 420px;
-  padding: $space-8;
-  background: $auth-bg-surface;
-  border: 1px solid $auth-border;
-  border-radius: $radius-xl;
-  box-shadow: 0 10px 40px rgba(6, 182, 212, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
-
-  h2 {
-    @include text-title;
-    text-align: center;
-    margin-bottom: $space-4;
-    color: $auth-text-primary;
-  }
-}
-
-// ============================================
-// Toggle Button
-// ============================================
-.toggle-btn {
-  display: block;
-  width: 100%;
-  padding: $space-2 $space-4;
-  margin-bottom: $space-6;
-  background: $auth-bg-elevated;
-  border: 1px solid $auth-border;
-  border-radius: $radius-md;
-  color: $auth-text-muted;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  cursor: pointer;
-  transition: all $transition-base;
-  @include hover-lift;
-
-  &:hover {
-    background: rgba($auth-primary, 0.1);
-    border-color: $auth-primary;
-    color: $auth-text-primary;
-  }
-}
-
-// ============================================
-// Auth Form Block
-// ============================================
-.auth-form {
   display: flex;
   flex-direction: column;
-  gap: $space-4;
+  min-height: 100vh;
+  min-height: 100dvh; // dynamic viewport for mobile
+  background: linear-gradient(160deg, $primary-bg 0%, #f8fafb 60%, #ecfdf5 100%);
+  padding: $space-6 $space-4;
+  padding-top: max(#{$space-10}, env(safe-area-inset-top, #{$space-10}));
+  @include flex-center;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-xl;
+  padding: $space-8 $space-6;
+  box-shadow: 0 8px 32px rgba($primary, 0.08), 0 2px 8px rgba(0,0,0,0.04);
+
+  // On very small screens, remove card padding
+  @media (max-width: 360px) { padding: $space-6 $space-4; }
+
+  h2 {
+    text-align: center;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $text;
+    margin: 0 0 $space-6;
+  }
+}
+
+// ── Tab toggle ────────────────────────────────────────────────
+.toggle-btn {
+  display: flex;
+  width: 100%;
+  background: #f3f4f6;
+  border: none;
+  border-radius: $radius-lg;
+  margin-bottom: $space-6;
+  padding: 4px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  span {
+    flex: 1; padding: $space-2; text-align: center;
+    font-size: $font-size-sm; font-weight: $font-weight-semibold;
+    color: $text-muted; border-radius: $radius-md;
+    transition: all $transition-base; z-index: 1;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 4px; bottom: 4px;
+    width: calc(50% - 4px);
+    background: $surface;
+    border-radius: $radius-md;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: transform $transition-slow;
+  }
+}
+
+// ── Form ──────────────────────────────────────────────────────
+.auth-form {
+  display: flex; flex-direction: column; gap: $space-4;
 
   label {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-medium;
-    color: $auth-text-muted;
+    display: flex; flex-direction: column; gap: $space-2;
+    font-size: $font-size-sm; font-weight: $font-weight-semibold;
+    color: $text-muted; text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   input {
-    padding: $space-3;
-    background: $auth-bg-surface;
-    border: 1px solid $auth-border;
-    border-radius: $radius-md;
-    color: $auth-text-primary;
-    font-size: $font-size-sm;
-    transition: all $transition-base;
-
-    &::placeholder {
-      color: $auth-text-muted;
-    }
+    padding: $space-3 $space-4;
+    background: $surface;
+    border: 1.5px solid #e5e7eb;
+    border-radius: $radius-lg;
+    color: $text;
+    font-size: $font-size-md; // 16px — prevents iOS zoom
+    font-family: $font-family-base;
+    transition: border-color $transition-base, box-shadow $transition-base;
+    -webkit-appearance: none;
 
     &:focus {
       outline: none;
-      border-color: $auth-primary;
-      box-shadow: 0 0 0 3px rgba($auth-primary, 0.1);
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.12);
     }
   }
 
   button[type="submit"] {
     margin-top: $space-2;
-    padding: $space-3 $space-4;
-    background: linear-gradient(135deg, $auth-primary, $auth-secondary);
-    border: none;
-    border-radius: $radius-md;
-    color: #ffffff;
-    font-size: $font-size-sm;
-    font-weight: $font-weight-semibold;
+    padding: $space-4;
+    background: $primary;
+    border: none; border-radius: $radius-lg;
+    color: #fff;
+    font-size: $font-size-base; font-weight: $font-weight-semibold;
+    font-family: $font-family-base;
     cursor: pointer;
-    transition: all $transition-base;
-    @include hover-lift;
+    min-height: 48px; // touch target
+    transition: background $transition-base, box-shadow $transition-base;
 
     &:hover:not(:disabled) {
-      box-shadow: 0 4px 16px rgba($auth-primary, 0.35);
+      background: $primary-dark;
+      box-shadow: 0 4px 16px rgba($primary, 0.3);
     }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    &:disabled { opacity: 0.55; cursor: not-allowed; }
   }
 }
 
-// ============================================
-// Messages
-// ============================================
-.info {
-  margin-top: $space-4;
-  padding: $space-3;
-  background: rgba($success-500, 0.1);
-  border: 1px solid rgba($success-500, 0.3);
-  border-radius: $radius-md;
-  color: $success-500;
-  font-size: $font-size-sm;
-}
-
-.error {
-  margin-top: $space-4;
-  padding: $space-3;
-  background: rgba($error-500, 0.1);
-  border: 1px solid rgba($error-500, 0.3);
-  border-radius: $radius-md;
-  color: $error-500;
-  font-size: $font-size-sm;
-}
-
-// ============================================
-// Back Link
-// ============================================
+// ── Back link ─────────────────────────────────────────────────
 .back-link {
-  display: inline-block;
-  margin-top: $space-6;
-  color: $auth-primary;
+  display: block;
+  text-align: center;
+  margin-top: $space-5;
+  color: $primary;
   font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   text-decoration: none;
-  transition: color $transition-base;
-
-  &:hover {
-    color: darken($auth-primary, 10%);
-    text-decoration: underline;
-  }
+  &:hover { text-decoration: underline; }
 }

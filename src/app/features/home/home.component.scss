@@ -1,272 +1,384 @@
-@use '../../../styles/variables' as *;
-@use '../../../styles/mixins' as *;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-// Home page theme colors (landing page specific)
-$home-bg-base: #0a0f1a;
-$home-bg-surface: rgba(17, 24, 39, 0.85);
-$home-primary: #06b6d4;
-$home-secondary: #3b82f6;
-$home-accent: #10b981;
-$home-text-primary: #f1f5f9;
-$home-text-secondary: #94a3b8;
-$home-border: rgba(148, 163, 184, 0.2);
-
+// ── Reset & base ──────────────────────────────────────────────────────────────
 :host {
   display: block;
-  min-height: 100vh;
-  background: radial-gradient(ellipse at top center, #111827 0%, #0a0f1a 50%, #050810 100%);
-  color: $home-text-primary;
-  font-family: $font-family-base;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  color: #111827;
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
 }
 
-// ============================================
-// Home Page Block
-// ============================================
-.home-page {
-  @include container;
-  padding-block: $space-6 $space-16;
+*, *::before, *::after { box-sizing: border-box; }
+
+a { text-decoration: none; }
+
+// ── Shared layout ─────────────────────────────────────────────────────────────
+.section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-// ============================================
-// Header Block
-// ============================================
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $space-6;
-  padding: $space-3 $space-5;
-  background: $home-bg-surface;
-  border: 1px solid $home-border;
-  border-radius: $radius-full;
-  backdrop-filter: blur(12px);
-  box-shadow: $shadow-lg;
-
-  @include sm-down {
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: $radius-xl;
-    gap: $space-4;
-  }
+.section-title {
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 800;
+  color: #111827;
+  text-align: center;
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
 }
 
-// ============================================
-// Logo Block
-// ============================================
-.logo {
+.section-subtitle {
+  font-size: 1.05rem;
+  color: #6b7280;
+  text-align: center;
+  margin: 0;
+  line-height: 1.6;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+.btn {
   display: inline-flex;
   align-items: center;
-  gap: $space-3;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 12px 24px;
+  font-size: 1rem;
 
-  &-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: $radius-full;
-    @include flex-center;
-    font-weight: $font-weight-bold;
-    font-size: $font-size-sm;
-    background: linear-gradient(135deg, $home-accent, $home-primary);
-    color: $home-bg-base;
+  &:focus-visible { outline: 2px solid #059669; outline-offset: 3px; }
+
+  &--primary {
+    background: #059669;
+    color: #fff;
+    &:hover { background: #047857; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,86,219,0.3); }
+    &:active { transform: translateY(0); }
   }
 
-  &-text {
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-xs;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: $home-text-primary;
+
+  &--outline {
+    background: transparent;
+    color: #059669;
+    border: 2px solid #059669;
+    &:hover { background: #f0fdf4; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(5,150,105,0.15); }
+    &:active { transform: translateY(0); }
   }
+  &--lg { padding: 14px 32px; font-size: 1.05rem; border-radius: 12px; }
+
+  &--full { width: 100%; }
+
+  &:disabled { opacity: 0.65; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 }
 
-// ============================================
-// Main Menu Block
-// ============================================
-.main-menu {
-  display: flex;
-  align-items: center;
-  gap: $space-6;
+.btn__spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
 
-  @include sm-down {
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Navbar ────────────────────────────────────────────────────────────────────
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 68px;
+    display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: $space-4;
+    gap: 16px;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #059669;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  &__logo-icon { font-size: 1.4rem; }
+  &__auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+
+  &__center {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex: 1;
+    justify-content: center;
+
+    @media (max-width: 767px) { display: none; }
+  }
+
+  &__link {
+    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+    &:hover, &:focus-visible { color: #059669; }
   }
 }
 
-.menu-link {
-  position: relative;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: $home-text-secondary;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding-bottom: $space-1;
-  transition: color $transition-base;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, $home-accent, $home-primary);
-    border-radius: $radius-full;
-    transition: width $transition-base;
-  }
-
-  &:hover {
-    color: $home-text-primary;
-
-    &::after {
-      width: 100%;
-    }
-  }
-}
-
-// ============================================
-// PWA Install Banner Block
-// ============================================
+// ── PWA Banner ──────────────────────────────────────────────────────────────
 .install-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-4;
-  margin-top: $space-4;
-  padding: $space-3 $space-4;
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(16, 185, 129, 0.12));
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  border-radius: $radius-lg;
-  backdrop-filter: blur(12px);
+  gap: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+  border-bottom: 1px solid #6ee7b7;
   animation: slide-down 0.3s ease;
 
-  @include sm-down {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
+  &__content { display: flex; align-items: center; gap: 12px; }
+  &__icon { font-size: 1.2rem; }
+  &__text {
+    display: flex; flex-direction: column; gap: 2px;
+    strong { font-size: 0.875rem; font-weight: 600; color: #065f46; }
+    span { font-size: 0.8rem; color: #6b7280; }
+  }
+  &__actions { display: flex; align-items: center; gap: 8px; }
+  &__dismiss {
+    width: 32px; height: 32px; font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; cursor: pointer; color: #6b7280; border-radius: 50%;
+    &:hover { background: rgba(0,0,0,0.06); }
   }
 }
 
 @keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.install-banner-content {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-
-  @include sm-down {
-    justify-content: center;
-  }
-}
-
-.install-banner-icon {
-  @include flex-center;
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-md;
-  background: linear-gradient(135deg, $home-accent, $home-primary);
-  color: $home-bg-base;
-  flex-shrink: 0;
-}
-
-.install-banner-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-
-  strong {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-semibold;
-    color: $home-text-primary;
-  }
-
-  span {
-    font-size: $font-size-xs;
-    color: $home-text-secondary;
-  }
-}
-
-.install-banner-actions {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  flex-shrink: 0;
-
-  @include sm-down {
-    justify-content: center;
-  }
-}
-
-.install-btn {
-  padding: $space-2 $space-5;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: $home-bg-base;
-  background: linear-gradient(135deg, $home-accent, $home-primary);
-  border-radius: $radius-full;
-  transition: opacity $transition-base;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-.dismiss-btn {
-  @include flex-center;
-  width: 32px;
-  height: 32px;
-  font-size: $font-size-lg;
-  color: $home-text-secondary;
-  border-radius: $radius-full;
-  transition: color $transition-base, background $transition-base;
-  cursor: pointer;
-
-  &:hover {
-    color: $home-text-primary;
-    background: rgba(255, 255, 255, 0.08);
-  }
-}
-
-// ============================================
-// Hero Block
-// ============================================
+// ── Hero ──────────────────────────────────────────────────────────────────────
 .hero {
-  @include flex-center;
-  padding-top: $space-16;
+  background: linear-gradient(135deg, #f0fdf4 0%, #fff 60%);
+  padding: 100px 0 80px;
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  &__headline {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.2;
+    margin: 0 0 20px;
+    letter-spacing: -1px;
+  }
+
+  &__subheadline {
+    font-size: 1.15rem;
+    color: #4b5563;
+    line-height: 1.7;
+    margin: 0 0 40px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  &__secondary-cta {
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: opacity 0.2s;
+    &:hover { opacity: 0.75; }
+  }
+
+  &__visual { display: flex; justify-content: center; }
+}
+
+.token-graphic {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 36px 40px;
+  box-shadow: 0 8px 32px rgba(26,86,219,0.08);
+}
+
+.token {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; width: 90px;
+
+  &__icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #ecfdf5;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; color: #059669;
+  }
+
+  &__label { font-size: 0.85rem; font-weight: 600; color: #374151; text-align: center; }
+  &--2 .token__icon { background: #d1fae5; }
+  &--3 .token__icon { background: #d1fae5; color: #059669; }
+}
+
+.token-arrow { font-size: 1.5rem; color: #9ca3af; }
+
+// ── How It Works ──────────────────────────────────────────────────────────────
+.how-it-works { padding: 96px 0; background: #fff; }
+
+.hiw {
+  &__steps { display: flex; align-items: flex-start; margin-top: 56px; }
+  &__step { flex: 1; text-align: center; padding: 0 24px; }
+  &__step-number {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #059669; color: #fff;
+    font-weight: 700; font-size: 0.9rem;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  }
+  &__step-icon { font-size: 2.4rem; display: block; margin-bottom: 16px; }
+  &__step-title { font-size: 1.15rem; font-weight: 700; color: #111827; margin: 0 0 10px; }
+  &__step-desc { font-size: 0.95rem; color: #6b7280; line-height: 1.6; margin: 0; }
+  &__connector {
+    width: 80px; height: 2px;
+    background: linear-gradient(90deg, #6ee7b7, #059669);
+    margin-top: 60px; flex-shrink: 0;
+  }
+}
+
+// ── Value Proposition ─────────────────────────────────────────────────────────
+.value-prop { padding: 96px 0; background: #f9fafb; }
+
+.vp {
+  &__cards {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 56px;
+  }
+  &__card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 32px 28px;
+    transition: box-shadow 0.2s, transform 0.2s;
+    &:hover { box-shadow: 0 8px 24px rgba(26,86,219,0.1); transform: translateY(-2px); }
+  }
+  &__card-icon { font-size: 2rem; margin-bottom: 16px; display: block; }
+  &__card-title { font-size: 1.05rem; font-weight: 700; color: #111827; margin: 0 0 10px; }
+  &__card-desc { font-size: 0.92rem; color: #6b7280; line-height: 1.6; margin: 0; }
+}
+
+// ── Trust ─────────────────────────────────────────────────────────────────────
+.trust {
+  padding: 96px 0; background: #fff; text-align: center;
+
+  &__mission {
+    max-width: 640px; margin: 0 auto 48px;
+    font-size: 1.05rem; color: #4b5563; line-height: 1.75;
+  }
+  &__badges { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 0; }
+  &__badge {
+    display: flex; align-items: center; gap: 10px;
+    background: #f0fdf4; border: 1px solid #6ee7b7; border-radius: 100px; padding: 10px 20px;
+    &-icon { font-size: 1.1rem; }
+    &-text { font-size: 0.875rem; font-weight: 500; color: #065f46; }
+  }
+}
+
+// ── FAQ ───────────────────────────────────────────────────────────────────────
+.faq {
+  padding: 96px 0; background: #f9fafb;
+
+  &__list { margin: 48px auto 0; max-width: 760px; }
+  &__item {
+    border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 12px;
+    background: #fff; overflow: hidden; transition: box-shadow 0.2s;
+    &--open { box-shadow: 0 4px 16px rgba(26,86,219,0.08); border-color: #6ee7b7; }
+  }
+  &__btn {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; background: none; border: none; cursor: pointer;
+    font-size: 1rem; font-weight: 600; color: #111827; text-align: left; gap: 16px;
+    min-height: 44px; font-family: inherit;
+    &:focus-visible { outline: 2px solid #059669; outline-offset: -2px; }
+    &:hover { background: #f9fafb; }
+  }
+  &__chevron { font-size: 1.3rem; color: #059669; flex-shrink: 0; }
+  &__answer { padding: 0 24px 20px; color: #4b5563; font-size: 0.95rem; line-height: 1.7; margin: 0; }
+}
+
+// ── Bottom CTA ────────────────────────────────────────────────────────────────
+.bottom-cta {
+  padding: 96px 0;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   text-align: center;
 
-  @include sm-down {
-    padding-top: $space-10;
-  }
+  &__inner { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  &__title { font-size: clamp(1.6rem, 3vw, 2.25rem); font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.5px; }
+  &__sub { font-size: 1.05rem; color: rgba(255,255,255,0.85); margin: 0; max-width: 480px; }
+  &__btn { background: #fff; color: #059669; &:hover { background: #f0fdf4; box-shadow: 0 4px 20px rgba(0,0,0,0.15); } }
+}
 
-  &-content {
-    max-width: 640px;
+// ── Footer ────────────────────────────────────────────────────────────────────
+.footer {
+  background: #111827; padding: 48px 0 32px;
 
-    h1 {
-      font-size: clamp(#{$font-size-2xl}, 5vw, #{$font-size-3xl});
-      font-weight: $font-weight-bold;
-      line-height: $line-height-tight;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, $home-text-primary 0%, $home-text-secondary 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+  &__inner {
+    max-width: 1200px; margin: 0 auto; padding: 0 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center;
   }
+  &__logo { display: inline-flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: 1.15rem; }
+  &__tagline { color: #9ca3af; font-size: 0.875rem; margin: 6px 0 0; }
+  &__links { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  &__link { color: #d1d5db; font-size: 0.875rem; transition: color 0.2s; &:hover { color: #fff; } }
+  &__copy { color: #6b7280; font-size: 0.8rem; margin: 0; }
+}
 
-  &-subtitle {
-    margin-top: $space-4;
-    font-size: $font-size-base;
-    line-height: $line-height-relaxed;
-    color: $home-text-secondary;
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 1023px) {
+  .vp__cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    padding: 60px 0 50px;
+    &__inner { grid-template-columns: 1fr; gap: 40px; }
   }
+  .token-graphic { padding: 24px 20px; gap: 10px; }
+  .token { width: 70px; &__icon { width: 52px; height: 52px; font-size: 1.3rem; } }
+
+  .hiw__steps { flex-direction: column; align-items: center; }
+  .hiw__step { padding: 0; max-width: 320px; width: 100%; }
+  .hiw__connector { width: 2px; height: 40px; background: linear-gradient(180deg, #6ee7b7, #059669); }
+
+  .vp__cards { grid-template-columns: 1fr; }
 }

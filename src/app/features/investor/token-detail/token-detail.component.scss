@@ -1,0 +1,177 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+$primary:      #059669;
+$primary-dark: #047857;
+$primary-bg:   #f0fdf4;
+$border:       #e5e7eb;
+$surface:      #ffffff;
+$text:         #064e3b;
+$text-muted:   #6b7280;
+$action-bar-h: 80px;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f9fafb;
+  font-family: $font-family-base;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  background: $surface;
+  border-bottom: 1px solid $border;
+  position: sticky; top: 0;
+  z-index: $z-sticky;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+  &__title {
+    flex: 1;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $text;
+    margin: 0;
+  }
+}
+
+.back-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer;
+  color: $primary; font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  padding: $space-1 $space-2;
+  border-radius: $radius-md;
+  transition: background $transition-base;
+  -webkit-tap-highlight-color: transparent;
+  &:hover { background: $primary-bg; }
+  &__icon { font-size: 1.4rem; line-height: 1; }
+}
+
+// ── Sections ──────────────────────────────────────────────────
+.detail-page {
+  flex: 1;
+  padding: $space-4;
+  padding-bottom: calc(#{$action-bar-h} + #{$space-4});
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.detail-section {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-xl;
+  overflow: hidden;
+
+  &__title {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $text-muted;
+    padding: $space-3 $space-4 $space-2;
+    border-bottom: 1px solid $border;
+    margin: 0;
+  }
+
+  &--muted { background: #f9fafb; }
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $border;
+  gap: $space-4;
+
+  &:last-child { border-bottom: none; }
+
+  &__label {
+    font-size: $font-size-sm;
+    color: $text-muted;
+    flex-shrink: 0;
+    min-width: 100px;
+  }
+
+  &__value {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text;
+    text-align: right;
+    word-break: break-all;
+
+    &.mono { font-family: $font-family-mono; font-size: $font-size-xs; }
+    &.small { font-size: 0.7rem; }
+  }
+}
+
+// ── Badges ────────────────────────────────────────────────────
+.badge {
+  display: inline-flex; padding: 2px 10px;
+  border-radius: $radius-full;
+  font-size: $font-size-xs; font-weight: $font-weight-semibold;
+  white-space: nowrap;
+  &--green { background: #dcfce7; color: #166534; }
+  &--gray  { background: #f3f4f6; color: #6b7280; }
+}
+
+.mono { font-family: $font-family-mono; font-size: $font-size-xs; }
+
+// ── Action bar ────────────────────────────────────────────────
+.action-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  padding-bottom: calc(#{$space-3} + env(safe-area-inset-bottom, 0px));
+  background: $surface;
+  border-top: 1px solid $border;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  z-index: $z-sticky;
+
+  &__btn {
+    flex: 1;
+    padding: $space-3;
+    border-radius: $radius-lg;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer; border: none;
+    transition: all $transition-base;
+    display: flex; align-items: center; justify-content: center; gap: $space-2;
+    min-height: 48px;
+
+    &--primary {
+      background: $primary; color: #fff;
+      &:hover:not(:disabled) { background: $primary-dark; box-shadow: 0 4px 12px rgba($primary,0.3); }
+    }
+    &--warn {
+      background: $warning-500; color: #fff;
+      &:hover:not(:disabled) { background: $warning-600; }
+    }
+    &--ghost {
+      background: #f3f4f6; color: $text-muted;
+      &:hover { background: #e5e7eb; }
+    }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
+
+// ── Spinner ───────────────────────────────────────────────────
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

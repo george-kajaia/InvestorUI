@@ -1,211 +1,284 @@
-<div class="marketplace-container">
-  <h2>Investor Marketplace</h2>
+<!-- ═══ TOP APP BAR ═════════════════════════════════════════ -->
+<header class="app-bar">
+  <div class="app-bar__inner">
+    <div class="app-bar__brand">
+      <span class="app-bar__logo">◈</span>
+      <span class="app-bar__title">Marketplace</span>
+    </div>
+    <div class="app-bar__meta">
+      <span class="app-bar__key" title="Your public key">{{ investorPublicKey | slice:0:12 }}…</span>
+      <button class="app-bar__refresh" (click)="refreshCurrentTab()" [disabled]="loading" aria-label="Refresh">
+        <span [class.spinning]="loading">↻</span>
+      </button>
+    </div>
+  </div>
 
-  <div class="tabs">
-    <button class="tab" [class.active]="activeTab === 'yourTokens'" (click)="setTab('yourTokens')">
-      Your Service Tokens
+
+  <!-- Desktop tab bar (hidden on mobile — uses bottom nav instead) -->
+  <div class="desktop-tabs">
+    <button class="desktop-tab" [class.desktop-tab--active]="activeTab === 'yourTokens'" (click)="setTab('yourTokens')">
+      My Tokens
     </button>
-    <button class="tab" [class.active]="activeTab === 'primaryMarket'" (click)="setTab('primaryMarket')">
+    <button class="desktop-tab" [class.desktop-tab--active]="activeTab === 'primaryMarket'" (click)="setTab('primaryMarket')">
       Primary Market
     </button>
-    <button class="tab" [class.active]="activeTab === 'secondaryMarket'" (click)="setTab('secondaryMarket')">
+    <button class="desktop-tab" [class.desktop-tab--active]="activeTab === 'secondaryMarket'" (click)="setTab('secondaryMarket')">
       Secondary Market
     </button>
   </div>
 
-  <div *ngIf="loading" class="info">Loading...</div>
-
-  <div class="filters">
-    <label>
-      Company
-      <select [(ngModel)]="marketCompanyId">
-        <option [ngValue]="-1">All</option>
-        <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }} ({{ c.id }})</option>
+  <!-- Filter bar (visible on all screen sizes) -->
+  <div class="filter-bar">
+    <label class="filter-bar__field">
+      <span class="filter-bar__label">Company</span>
+      <select [(ngModel)]="marketCompanyId" class="filter-bar__input">
+        <option [ngValue]="-1">All companies</option>
+        <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
       </select>
     </label>
-
-    <label>
-      Request Id (optional)
-      <input type="number" [(ngModel)]="marketRequestId" min="-1" />
+    <label class="filter-bar__field">
+      <span class="filter-bar__label">Request ID</span>
+      <input type="number" [(ngModel)]="marketRequestId" min="-1" placeholder="Any" class="filter-bar__input">
     </label>
+    <button class="filter-bar__btn filter-bar__btn--primary" (click)="applyFilters()">Apply</button>
+    <button class="filter-bar__btn" (click)="refreshFilters()">Reset</button>
 
-    <button class="secondary" (click)="applyFilters()">
-      Apply
-    </button>
-
-    <button class="secondary" (click)="refreshFilters()">
-      Refresh
-    </button>
-
-    <!-- Toolbar actions (moved from table "Actions" column) -->
-    <button
-      *ngIf="activeTab === 'yourTokens'"
-      class="secondary"
-      (click)="markSelectedForResell()"
-      [disabled]="!canMarkForResell">
-      Mark for resell
-    </button>
-
-    <button
-      *ngIf="activeTab === 'yourTokens'"
-      class="secondary"
-      (click)="cancelSelectedReselling()"
-      [disabled]="!canCancelReselling">
-      Cancel reselling
-    </button>
-
-    <button
-      *ngIf="activeTab === 'primaryMarket'"
-      class="secondary"
-      (click)="buySelectedPrimary()"
-      [disabled]="!canBuyPrimary">
-      Buy
-    </button>
-
-    <button
-      *ngIf="activeTab === 'secondaryMarket'"
-      class="secondary"
-      (click)="buySelectedSecondary()"
-      [disabled]="!canBuySecondary">
-      Buy
-    </button>
+    <!-- Desktop action buttons -->
+    <div class="filter-bar__actions">
+      <button *ngIf="activeTab === 'yourTokens'" class="action-btn action-btn--green"
+        (click)="markSelectedForResell()" [disabled]="!canMarkForResell">
+        Mark for Resell
+      </button>
+      <button *ngIf="activeTab === 'yourTokens'" class="action-btn action-btn--warn"
+        (click)="cancelSelectedReselling()" [disabled]="!canCancelReselling">
+        Cancel Reselling
+      </button>
+      <button *ngIf="activeTab === 'primaryMarket'" class="action-btn action-btn--green"
+        (click)="buySelectedPrimary()" [disabled]="!canBuyPrimary">
+        Buy Token
+      </button>
+      <button *ngIf="activeTab === 'secondaryMarket'" class="action-btn action-btn--green"
+        (click)="buySelectedSecondary()" [disabled]="!canBuySecondary">
+        Buy Token
+      </button>
+    </div>
   </div>
+</header>
 
-  <!-- Your tokens -->
-  <section *ngIf="activeTab === 'yourTokens'" class="panel">
-    <div class="panel-header">
-      <h3>Your Tokens</h3>
+<!-- ═══ LOADING INDICATOR ════════════════════════════════════ -->
+<div class="loading-bar" *ngIf="loading" role="status" aria-label="Loading"></div>
+
+<!-- ═══ MAIN CONTENT ════════════════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ── Your Tokens ──────────────────────────────────────── -->
+  <section *ngIf="activeTab === 'yourTokens'" class="tab-content">
+
+    <!-- Desktop table -->
+    <div class="table-wrap">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>ID</th><th>Company</th><th>Product</th>
+            <th>Status</th><th>Count</th><th>Schedule</th>
+            <th>Start</th><th>End</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of filteredYourTokens" class="selectable-row"
+              [class.selected]="isSelectedYour(t)" (click)="selectYourToken(t)">
+            <td>{{ t.id }}</td>
+            <td>{{ t.companyName }}</td>
+            <td>{{ t.productId }}</td>
+            <td><span class="badge" [class]="statusClass(t.status)">{{ tokenStatusLabel(t.status) }}</span></td>
+            <td>{{ t.count }}</td>
+            <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+            <td>{{ t.startDate | date:'mediumDate' }}</td>
+            <td>{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty-msg" *ngIf="!loading && filteredYourTokens.length === 0">No tokens found.</p>
     </div>
 
-    <table *ngIf="!loading && filteredYourTokens.length > 0" class="grid">
-      <thead>
-        <tr>
-          <th>Token Id</th>
-          <th>RowVersion</th>
-          <th>Company</th>
-          <th>Request</th>
-          <th>Product</th>
-          <th>Status</th>
-          <th>Count</th>
-          <th>ServiceCount</th>
-          <th>Schedule</th>
-          <th>Start</th>
-          <th>End</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let t of filteredYourTokens"
-          class="selectable-row"
-          [class.selected]="isSelectedYour(t)"
-          (click)="selectYourToken(t)">
-          <td>{{ t.id }}</td>
-          <td>{{ t.rowVersion }}</td>
-          <td>{{ t.companyName }} ({{ t.companyId }})</td>
-          <td>{{ t.requestId }}</td>
-          <td>{{ t.productId }}</td>
-          <td>{{ tokenStatusLabel(t.status) }}</td>
-          <td>{{ t.count }}</td>
-          <td>{{ t.serviceCount }}</td>
-          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
-          <td>{{ t.startDate | date: 'medium' }}</td>
-          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div *ngIf="!loading && filteredYourTokens.length === 0" class="muted">No tokens found.</div>
+    <!-- Mobile cards -->
+    <div class="card-list">
+      <div class="token-card" *ngFor="let t of filteredYourTokens"
+           (click)="openDetail(t, 'yourTokens')">
+        <div class="token-card__header">
+          <span class="token-card__company">{{ t.companyName }}</span>
+          <span class="badge" [class]="statusClass(t.status)">{{ tokenStatusLabel(t.status) }}</span>
+        </div>
+        <div class="token-card__body">
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Count</span>
+            <span class="token-card__stat-value">{{ t.count }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-value">{{ t.serviceCount }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Start</span>
+            <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">End</span>
+            <span class="token-card__stat-value">{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</span>
+          </div>
+        </div>
+        <div class="token-card__footer">
+          <span class="token-card__id">Token #{{ t.id }}</span>
+          <span class="token-card__chevron">›</span>
+        </div>
+      </div>
+      <p class="empty-msg" *ngIf="!loading && filteredYourTokens.length === 0">No tokens found.</p>
+    </div>
   </section>
 
-  <!-- Primary market -->
-  <section *ngIf="activeTab === 'primaryMarket'" class="panel">
-    <div class="panel-header">
-      <h3>Primary Market Tokens</h3>
+  <!-- ── Primary Market ───────────────────────────────────── -->
+  <section *ngIf="activeTab === 'primaryMarket'" class="tab-content">
+    <div class="table-wrap">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>ID</th><th>Company</th><th>Product</th>
+            <th>Count</th><th>Schedule</th><th>Start</th><th>End</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of primaryMarketTokens" class="selectable-row"
+              [class.selected]="isSelectedPrimary(t)" (click)="selectPrimaryToken(t)">
+            <td>{{ t.id }}</td>
+            <td>{{ t.companyName }}</td>
+            <td>{{ t.productId }}</td>
+            <td>{{ t.count }}</td>
+            <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+            <td>{{ t.startDate | date:'mediumDate' }}</td>
+            <td>{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty-msg" *ngIf="!loading && primaryMarketTokens.length === 0">No tokens available.</p>
     </div>
 
-    <table *ngIf="!loading && primaryMarketTokens.length > 0" class="grid">
-      <thead>
-        <tr>
-          <th>Token Id</th>
-          <th>RowVersion</th>
-          <th>Company</th>
-          <th>Request</th>
-          <th>Product</th>
-          <th>Count</th>
-          <th>ServiceCount</th>
-          <th>Schedule</th>
-          <th>Start</th>
-          <th>End</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let t of primaryMarketTokens"
-          class="selectable-row"
-          [class.selected]="isSelectedPrimary(t)"
-          (click)="selectPrimaryToken(t)">
-          <td>{{ t.id }}</td>
-          <td>{{ t.rowVersion }}</td>
-          <td>{{ t.companyName }} ({{ t.companyId }})</td>
-          <td>{{ t.requestId }}</td>
-          <td>{{ t.productId }}</td>
-          <td>{{ t.count }}</td>
-          <td>{{ t.serviceCount }}</td>
-          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
-          <td>{{ t.startDate | date: 'medium' }}</td>
-          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div *ngIf="!loading && primaryMarketTokens.length === 0" class="muted">No tokens found.</div>
+    <div class="card-list">
+      <div class="token-card token-card--buyable" *ngFor="let t of primaryMarketTokens"
+           (click)="openDetail(t, 'primaryMarket')">
+        <div class="token-card__header">
+          <span class="token-card__company">{{ t.companyName }}</span>
+          <span class="badge badge--green">Available</span>
+        </div>
+        <div class="token-card__body">
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Count</span>
+            <span class="token-card__stat-value">{{ t.count }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-value">{{ t.serviceCount }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Start</span>
+            <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">End</span>
+            <span class="token-card__stat-value">{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</span>
+          </div>
+        </div>
+        <div class="token-card__footer">
+          <span class="token-card__id">Token #{{ t.id }}</span>
+          <span class="token-card__chevron">›</span>
+        </div>
+      </div>
+      <p class="empty-msg" *ngIf="!loading && primaryMarketTokens.length === 0">No tokens available.</p>
+    </div>
   </section>
 
-  <!-- Secondary market -->
-  <section *ngIf="activeTab === 'secondaryMarket'" class="panel">
-    <div class="panel-header">
-      <h3>Secondary Market Tokens</h3>
+  <!-- ── Secondary Market ─────────────────────────────────── -->
+  <section *ngIf="activeTab === 'secondaryMarket'" class="tab-content">
+    <div class="table-wrap">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>ID</th><th>Company</th><th>Product</th>
+            <th>Owner</th><th>Count</th><th>Schedule</th><th>Start</th><th>End</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of secondaryMarketTokens" class="selectable-row"
+              [class.selected]="isSelectedSecondary(t)" (click)="selectSecondaryToken(t)">
+            <td>{{ t.id }}</td>
+            <td>{{ t.companyName }}</td>
+            <td>{{ t.productId }}</td>
+            <td class="mono">{{ t.ownerPublicKey | slice:0:10 }}…</td>
+            <td>{{ t.count }}</td>
+            <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
+            <td>{{ t.startDate | date:'mediumDate' }}</td>
+            <td>{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty-msg" *ngIf="!loading && secondaryMarketTokens.length === 0">No tokens available.</p>
     </div>
 
-    <table *ngIf="!loading && secondaryMarketTokens.length > 0" class="grid">
-      <thead>
-        <tr>
-          <th>Token Id</th>
-          <th>RowVersion</th>
-          <th>Company</th>
-          <th>Request</th>
-          <th>Product</th>
-          <th>Owner</th>
-          <th>Count</th>
-          <th>ServiceCount</th>
-          <th>Schedule</th>
-          <th>Start</th>
-          <th>End</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let t of secondaryMarketTokens"
-          class="selectable-row"
-          [class.selected]="isSelectedSecondary(t)"
-          (click)="selectSecondaryToken(t)">
-          <td>{{ t.id }}</td>
-          <td>{{ t.rowVersion }}</td>
-          <td>{{ t.companyName }} ({{ t.companyId }})</td>
-          <td>{{ t.requestId }}</td>
-          <td>{{ t.productId }}</td>
-          <td>{{ t.ownerPublicKey }}</td>
-          <td>{{ t.count }}</td>
-          <td>{{ t.serviceCount }}</td>
-          <td>{{ scheduleTypeLabel(t.scheduleType) }}</td>
-          <td>{{ t.startDate | date: 'medium' }}</td>
-          <td>{{ t.endDate ? (t.endDate | date: 'medium') : '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div *ngIf="!loading && secondaryMarketTokens.length === 0" class="muted">No tokens found.</div>
+    <div class="card-list">
+      <div class="token-card token-card--buyable" *ngFor="let t of secondaryMarketTokens"
+           (click)="openDetail(t, 'secondaryMarket')">
+        <div class="token-card__header">
+          <span class="token-card__company">{{ t.companyName }}</span>
+          <span class="badge badge--blue">Resale</span>
+        </div>
+        <div class="token-card__body">
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Count</span>
+            <span class="token-card__stat-value">{{ t.count }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-value">{{ t.serviceCount }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">Start</span>
+            <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="token-card__stat">
+            <span class="token-card__stat-label">End</span>
+            <span class="token-card__stat-value">{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</span>
+          </div>
+        </div>
+        <div class="token-card__footer">
+          <span class="token-card__id">Token #{{ t.id }}</span>
+          <span class="token-card__chevron">›</span>
+        </div>
+      </div>
+      <p class="empty-msg" *ngIf="!loading && secondaryMarketTokens.length === 0">No tokens available.</p>
+    </div>
   </section>
+</main>
 
-  <a routerLink="/" class="back-link">Back to main page</a>
-</div>
+<!-- ═══ BOTTOM TAB BAR (mobile) ═════════════════════════════ -->
+<nav class="bottom-nav" role="tablist" aria-label="Marketplace tabs">
+  <button class="bottom-nav__tab" role="tab"
+          [class.bottom-nav__tab--active]="activeTab === 'yourTokens'"
+          [attr.aria-selected]="activeTab === 'yourTokens'"
+          (click)="setTab('yourTokens')">
+    <span class="bottom-nav__icon">◈</span>
+    <span class="bottom-nav__label">My Tokens</span>
+  </button>
+  <button class="bottom-nav__tab" role="tab"
+          [class.bottom-nav__tab--active]="activeTab === 'primaryMarket'"
+          [attr.aria-selected]="activeTab === 'primaryMarket'"
+          (click)="setTab('primaryMarket')">
+    <span class="bottom-nav__icon">🏪</span>
+    <span class="bottom-nav__label">Primary</span>
+  </button>
+  <button class="bottom-nav__tab" role="tab"
+          [class.bottom-nav__tab--active]="activeTab === 'secondaryMarket'"
+          [attr.aria-selected]="activeTab === 'secondaryMarket'"
+          (click)="setTab('secondaryMarket')">
+    <span class="bottom-nav__icon">🔄</span>
+    <span class="bottom-nav__label">Secondary</span>
+  </button>
+</nav>

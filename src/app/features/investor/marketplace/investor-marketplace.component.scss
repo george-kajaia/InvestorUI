@@ -1,358 +1,333 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/mixins' as *;
 
-// User theme colors - Light with blue tint (consistent with company dashboard)
-$market-bg-base: #f8fafc;
-$market-bg-surface: #ffffff;
-$market-bg-elevated: #f0f9ff;
-$market-bg-hover: #e0f2fe;
-$market-primary: #06b6d4;
-$market-secondary: #3b82f6;
-$market-accent: #10b981;
-$market-text-primary: #0c4a6e;
-$market-text-secondary: #0369a1;
-$market-text-muted: #64748b;
-$market-border-subtle: #e0f2fe;
-$market-border-default: #bae6fd;
+// ── Theme ─────────────────────────────────────────────────────
+$primary:      #059669;
+$primary-dark: #047857;
+$primary-bg:   #f0fdf4;
+$primary-muted:#d1fae5;
+$border:       #e5e7eb;
+$surface:      #ffffff;
+$text:         #064e3b;
+$text-muted:   #6b7280;
+$bottom-nav-h: 64px;
+$app-bar-h:    56px;
 
+// ── Host ──────────────────────────────────────────────────────
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: $market-bg-base;
-  color: $market-text-primary;
+  background: $primary-bg;
   font-family: $font-family-base;
+  color: $text;
 }
 
-// ============================================
-// Marketplace Container Block
-// ============================================
-.marketplace-container {
-  @include container;
-  padding-block: $space-8;
+// ── App bar ───────────────────────────────────────────────────
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  background: $surface;
+  border-bottom: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 
-  > h2 {
-    @include text-title;
-    margin-bottom: $space-4;
-  }
-}
-
-// ============================================
-// Investor Info Block
-// ============================================
-.investor-info {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: $space-2;
-  margin-bottom: $space-6;
-  padding: $space-3 $space-4;
-  background: $market-bg-surface;
-  border: 1px solid $market-border-subtle;
-  border-radius: $radius-lg;
-  font-size: $font-size-sm;
-  color: $market-text-muted;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.investor-name {
-  font-weight: $font-weight-semibold;
-  color: $market-primary;
-}
-
-// ============================================
-// Tabs Block
-// ============================================
-.tabs {
-  display: flex;
-  gap: $space-2;
-  margin-bottom: $space-6;
-  padding-bottom: $space-4;
-  border-bottom: 1px solid $market-border-subtle;
-}
-
-.tab {
-  padding: $space-2 $space-4;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: $radius-full;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: $market-text-secondary;
-  cursor: pointer;
-  transition: all $transition-base;
-
-  &:hover:not(.active) {
-    background: $market-primary;
-    color: #ffffff;
-  }
-
-  &.active {
-    background: linear-gradient(135deg, $market-primary, $market-secondary);
-    color: #ffffff;
-  }
-}
-
-// ============================================
-// Tab Content Block
-// ============================================
-.tab-content {
-  padding: $space-5;
-  background: $market-bg-surface;
-  border: 1px solid $market-border-subtle;
-  border-radius: $radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-// ============================================
-// Selector Block
-// ============================================
-.selector {
-  margin-bottom: $space-4;
-
-  label {
+  &__inner {
     display: flex;
     align-items: center;
-    gap: $space-3;
-    font-size: $font-size-sm;
-    color: $market-text-muted;
+    justify-content: space-between;
+    padding: 0 $space-4;
+    height: $app-bar-h;
   }
 
-  select {
-    padding: $space-2 $space-3;
-    background: $market-bg-surface;
-    border: 1px solid $market-border-default;
-    border-radius: $radius-md;
-    color: $market-text-primary;
-    font-size: $font-size-sm;
-    cursor: pointer;
-    transition: all $transition-base;
-    min-width: 200px;
+  &__brand { display: flex; align-items: center; gap: $space-2; }
+  &__logo  { font-size: 1.4rem; color: $primary; }
+  &__title { font-size: $font-size-lg; font-weight: $font-weight-bold; color: $text; }
 
-    &:focus {
-      outline: none;
-      border-color: $market-primary;
-      box-shadow: 0 0 0 3px rgba($market-primary, 0.1);
-    }
+  &__meta { display: flex; align-items: center; gap: $space-3; }
+
+  &__key {
+    font-size: $font-size-xs;
+    font-family: $font-family-mono;
+    color: $text-muted;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: $radius-full;
+    @include truncate;
+    max-width: 140px;
+  }
+
+  &__refresh {
+    width: 36px; height: 36px;
+    background: none; border: none; cursor: pointer;
+    font-size: 1.2rem; color: $primary;
+    border-radius: $radius-full;
+    display: flex; align-items: center; justify-content: center;
+    transition: background $transition-base;
+    &:hover { background: $primary-muted; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
   }
 }
 
-// ============================================
-// Table (Grid) Block
-// ============================================
-.grid {
-  width: 100%;
-  border-collapse: collapse;
-  background: $market-bg-surface;
-  border-radius: $radius-md;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinning { display: inline-block; animation: spin 0.8s linear infinite; }
 
-  th,
-  td {
-    padding: $space-3;
-    text-align: left;
-    font-size: $font-size-sm;
-    border-bottom: 1px solid $market-border-subtle;
+// ── Filter bar (desktop) ──────────────────────────────────────
+.filter-bar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+  border-top: 1px solid $border;
+  background: #fafafa;
+  overflow-x: auto;
+
+  &__field {
+    display: flex; flex-direction: column; gap: $space-1;
+  }
+
+  &__label {
+    font-size: $font-size-xs; font-weight: $font-weight-semibold;
+    color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  &__input {
+    padding: $space-2 $space-3;
+    border: 1px solid $border; border-radius: $radius-md;
+    font-size: $font-size-sm; color: $text;
+    background: $surface; min-width: 160px;
+    &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.1); }
+  }
+
+  &__btn {
+    padding: $space-2 $space-4;
+    border-radius: $radius-md; font-size: $font-size-sm;
+    font-weight: $font-weight-semibold; cursor: pointer;
+    border: 1px solid $border; background: $surface; color: $text-muted;
+    transition: all $transition-base; align-self: flex-end;
+    &:hover { background: #f3f4f6; }
+    &--primary { background: $primary; color: #fff; border-color: $primary;
+      &:hover { background: $primary-dark; } }
+  }
+
+  &__actions { display: flex; gap: $space-2; align-self: flex-end; margin-left: auto; }
+}
+
+
+// ── Desktop tab bar (hidden on mobile) ───────────────────────
+.desktop-tabs {
+  display: none;
+  border-top: 1px solid $border;
+  padding: 0 $space-4;
+  background: $surface;
+
+  @include md { display: flex; gap: 0; }
+}
+
+.desktop-tab {
+  padding: $space-3 $space-5;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $text-muted;
+  cursor: pointer;
+  transition: color $transition-base, border-color $transition-base;
+  white-space: nowrap;
+
+  &:hover { color: $primary; }
+
+  &--active {
+    color: $primary;
+    border-bottom-color: $primary;
+  }
+}
+
+// ── Loading bar ───────────────────────────────────────────────
+.loading-bar {
+  height: 3px;
+  background: linear-gradient(90deg, $primary, lighten($primary, 20%));
+  animation: loading 1.2s ease infinite;
+}
+@keyframes loading {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+// ── Main content ──────────────────────────────────────────────
+.main-content {
+  flex: 1;
+  padding: $space-4;
+  padding-bottom: calc(#{$bottom-nav-h} + #{$space-4});
+
+  @include md { padding-bottom: $space-4; }
+}
+
+.tab-content { animation: fade-in 0.15s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+// ── Desktop table ─────────────────────────────────────────────
+.table-wrap {
+  display: none;
+  overflow-x: auto;
+  border-radius: $radius-lg;
+  border: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+
+  @include md { display: block; }
+}
+
+.grid {
+  width: 100%; border-collapse: collapse; background: $surface;
+
+  th, td {
+    padding: $space-3; text-align: left;
+    font-size: $font-size-sm; border-bottom: 1px solid $border;
   }
 
   th {
-    background: $market-bg-elevated;
-    color: $market-text-secondary;
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-xs;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  td {
-    color: $market-text-primary;
+    background: $primary-bg; color: $primary-dark;
+    font-weight: $font-weight-semibold; font-size: $font-size-xs;
+    text-transform: uppercase; letter-spacing: 0.05em;
   }
 
   tbody tr {
-    transition: all $transition-fast;
-
-    &:hover {
-      background: rgba($market-primary, 0.08);
-    }
-  }
-}
-
-// Click-to-select rows (actions are in the top toolbar)
-.selectable-row {
-  cursor: pointer;
-}
-
-.selectable-row.selected {
-  background: rgba($market-secondary, 0.16) !important;
-}
-
-// ============================================
-// Action Buttons
-// ============================================
-.action-btn {
-  padding: $space-1 $space-3;
-  border-radius: $radius-full;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  border: none;
-  transition: all $transition-base;
-  @include hover-lift;
-
-  &.primary {
-    background: linear-gradient(135deg, $market-accent, $market-primary);
-    color: #ffffff;
-
-    &:hover:not(:disabled) {
-      box-shadow: 0 4px 12px rgba($market-accent, 0.35);
-    }
+    transition: background $transition-fast; cursor: pointer;
+    &:hover { background: rgba($primary, 0.04); }
+    &:last-child td { border-bottom: none; }
   }
 
-  &.secondary {
-    background: linear-gradient(135deg, $warning-500, $warning-400);
-    color: #ffffff;
-
-    &:hover:not(:disabled) {
-      box-shadow: 0 4px 12px rgba($warning-500, 0.35);
-    }
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  .selectable-row.selected { background: rgba($primary, 0.1) !important; }
 }
 
-// ============================================
-// Messages
-// ============================================
-.info {
-  padding: $space-3 $space-4;
-  background: rgba($market-primary, 0.1);
-  border: 1px solid rgba($market-primary, 0.3);
-  border-radius: $radius-md;
-  color: $market-primary;
-  font-size: $font-size-sm;
+// ── Mobile card list ──────────────────────────────────────────
+.card-list {
+  display: flex; flex-direction: column; gap: $space-3;
+
+  @include md { display: none; }
 }
 
-.error {
-  padding: $space-3 $space-4;
-  background: rgba($error-500, 0.1);
-  border: 1px solid rgba($error-500, 0.3);
-  border-radius: $radius-md;
-  color: $error-400;
-  font-size: $font-size-sm;
-}
-
-// ============================================
-// Utility
-// ============================================
-.mono {
-  @include text-mono;
-  word-break: break-all;
-  max-width: 120px;
-  @include truncate;
-}
-
-// ============================================
-// Filters + Panels (matches current template)
-// ============================================
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: $space-3;
-  margin-bottom: $space-5;
+.token-card {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-xl;
   padding: $space-4;
-  background: $market-bg-surface;
-  border: 1px solid $market-border-subtle;
-  border-radius: $radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: $space-1;
-    font-size: $font-size-sm;
-    color: $market-text-muted;
-    min-width: 220px;
-  }
-
-  select,
-  input {
-    padding: $space-2 $space-3;
-    background: $market-bg-surface;
-    border: 1px solid $market-border-default;
-    border-radius: $radius-md;
-    color: $market-text-primary;
-    font-size: $font-size-sm;
-    transition: all $transition-base;
-
-    &:focus {
-      outline: none;
-      border-color: $market-primary;
-      box-shadow: 0 0 0 3px rgba($market-primary, 0.1);
-    }
-  }
-}
-
-.panel {
-  padding: $space-5;
-  background: $market-bg-surface;
-  border: 1px solid $market-border-subtle;
-  border-radius: $radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $space-3;
-  margin-bottom: $space-4;
-
-  h3 {
-    margin: 0;
-    font-weight: $font-weight-semibold;
-    color: $market-text-secondary;
-  }
-}
-
-.muted {
-  margin-top: $space-3;
-  color: $market-text-muted;
-  font-size: $font-size-sm;
-}
-
-button.secondary {
-  padding: $space-2 $space-4;
-  border: none;
-  border-radius: $radius-full;
   cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: #ffffff;
-  background: linear-gradient(135deg, $market-secondary, $market-primary);
-  transition: all $transition-base;
-  @include hover-lift;
+  transition: box-shadow $transition-base, transform $transition-base;
+  -webkit-tap-highlight-color: transparent;
 
-  &:hover:not(:disabled) {
-    box-shadow: 0 6px 18px rgba($market-secondary, 0.25);
+  &:active { transform: scale(0.98); }
+  &:hover  { box-shadow: 0 4px 16px rgba($primary, 0.1); }
+
+  &--buyable { border-left: 4px solid $primary; }
+
+  &__header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: $space-3;
   }
 
-  // Make enabled/disabled states visually obvious (requested)
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 1; // rely on color change instead of fading
-    color: $market-text-muted;
-    background: linear-gradient(135deg, #cbd5e1, #e2e8f0);
-    box-shadow: none;
-    transform: none;
+  &__company {
+    font-size: $font-size-base; font-weight: $font-weight-semibold;
+    color: $text; @include truncate; max-width: 60%;
   }
+
+  &__body {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: $space-2 $space-4; margin-bottom: $space-3;
+  }
+
+  &__stat { display: flex; flex-direction: column; gap: 2px; }
+
+  &__stat-label {
+    font-size: $font-size-xs; font-weight: $font-weight-semibold;
+    color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  &__stat-value { font-size: $font-size-sm; color: $text; font-weight: $font-weight-medium; }
+
+  &__footer {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid $border; padding-top: $space-2; margin-top: $space-1;
+  }
+
+  &__id { font-size: $font-size-xs; color: $text-muted; font-family: $font-family-mono; }
+  &__chevron { font-size: 1.2rem; color: $primary; font-weight: $font-weight-bold; }
 }
 
-.action-col {
+// ── Badges ────────────────────────────────────────────────────
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 10px; border-radius: $radius-full;
+  font-size: $font-size-xs; font-weight: $font-weight-semibold;
+
+  &--green  { background: #dcfce7; color: #166534; }
+  &--blue   { background: #dbeafe; color: #1e40af; }
+  &--gray   { background: #f3f4f6; color: #6b7280; }
+  &--yellow { background: #fef9c3; color: #854d0e; }
+}
+
+// ── Action buttons ────────────────────────────────────────────
+.action-btn {
+  padding: $space-2 $space-4; border-radius: $radius-md;
+  font-size: $font-size-sm; font-weight: $font-weight-semibold;
+  cursor: pointer; border: none; transition: all $transition-base;
+
+  &--green {
+    background: $primary; color: #fff;
+    &:hover:not(:disabled) { background: $primary-dark; box-shadow: 0 4px 12px rgba($primary, 0.3); }
+  }
+  &--warn {
+    background: $warning-500; color: #fff;
+    &:hover:not(:disabled) { background: $warning-600; }
+  }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+}
+
+// ── Empty / muted ─────────────────────────────────────────────
+.empty-msg {
+  text-align: center; color: $text-muted;
+  font-size: $font-size-sm; padding: $space-8 0;
+}
+
+.mono { font-family: $font-family-mono; font-size: $font-size-xs; }
+
+// ── Bottom navigation bar ─────────────────────────────────────
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: $bottom-nav-h;
+  background: $surface;
+  border-top: 1px solid $border;
   display: flex;
-  gap: $space-2;
-  flex-wrap: wrap;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  z-index: $z-sticky;
+  // Safe area for iPhone home bar
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  @include md { display: none; }
+
+  &__tab {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; border: none; background: none;
+    cursor: pointer; color: $text-muted;
+    font-size: $font-size-xs; font-weight: $font-weight-medium;
+    transition: color $transition-base;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+
+    &--active {
+      color: $primary;
+      .bottom-nav__icon { transform: scale(1.15); }
+    }
+
+    &:hover { color: $primary; }
+  }
+
+  &__icon { font-size: 1.3rem; transition: transform $transition-base; }
+  &__label { font-size: 10px; font-weight: $font-weight-semibold; }
 }
