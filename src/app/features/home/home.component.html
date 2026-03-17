@@ -20,18 +20,13 @@
   </div>
 </nav>
 
-<!-- PWA Install Banner -->
-<div class="install-banner" *ngIf="showInstallBanner">
-  <div class="install-banner__content">
-    <span class="install-banner__icon" aria-hidden="true">⬇</span>
-    <div class="install-banner__text">
-      <strong>Service Tokens</strong>
-      <span>Install the app for a better experience</span>
-    </div>
-  </div>
-  <div class="install-banner__actions">
-    <button class="btn btn--primary" (click)="installApp()">Install</button>
-    <button class="install-banner__dismiss" (click)="dismissBanner()" aria-label="Dismiss">&times;</button>
+
+<!-- ═══════════════════════════ TEST MODE BANNER ═══════════════════════════ -->
+<div class="test-mode-banner" role="alert" aria-live="polite">
+  <span class="test-mode-banner__icon" aria-hidden="true">🧪</span>
+  <div class="test-mode-banner__text">
+    <strong>Testing Environment</strong>
+    <span>This application is currently running in <strong>test mode</strong>. Data is not real and no actual transactions will be processed.</span>
   </div>
 </div>
 

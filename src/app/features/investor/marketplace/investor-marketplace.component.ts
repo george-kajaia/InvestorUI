@@ -122,15 +122,24 @@ export class InvestorMarketplaceComponent implements OnInit {
   }
 
   private reconcileSelection() {
-    if (this.selectedYourToken && !this.filteredYourTokens.some(t => t.id === this.selectedYourToken?.id))
-      this.selectedYourToken = null;
-    if (this.selectedPrimaryToken && !this.primaryMarketTokens.some(t => t.id === this.selectedPrimaryToken?.id))
-      this.selectedPrimaryToken = null;
-    if (this.selectedSecondaryToken && !this.secondaryMarketTokens.some(t => t.id === this.selectedSecondaryToken?.id))
-      this.selectedSecondaryToken = null;
+    if (this.selectedYourToken) {
+      const fresh = this.filteredYourTokens.find(t => t.id === this.selectedYourToken?.id);
+      this.selectedYourToken = fresh ?? null;
+    }
+    if (this.selectedPrimaryToken) {
+      const fresh = this.primaryMarketTokens.find(t => t.id === this.selectedPrimaryToken?.id);
+      this.selectedPrimaryToken = fresh ?? null;
+    }
+    if (this.selectedSecondaryToken) {
+      const fresh = this.secondaryMarketTokens.find(t => t.id === this.selectedSecondaryToken?.id);
+      this.selectedSecondaryToken = fresh ?? null;
+    }
   }
 
-  selectYourToken(t: ServiceTokenDto) { this.selectedYourToken = t; }
+  selectYourToken(t: ServiceTokenDto) {
+    // Always pick the fresh reference from the live list so status is current
+    this.selectedYourToken = this.filteredYourTokens.find(x => x.id === t.id) ?? t;
+  }
   selectPrimaryToken(t: ServiceTokenDto) { this.selectedPrimaryToken = t; }
   selectSecondaryToken(t: ServiceTokenDto) { this.selectedSecondaryToken = t; }
 
@@ -138,8 +147,10 @@ export class InvestorMarketplaceComponent implements OnInit {
   isSelectedPrimary(t: ServiceTokenDto) { return this.selectedPrimaryToken?.id === t.id; }
   isSelectedSecondary(t: ServiceTokenDto) { return this.selectedSecondaryToken?.id === t.id; }
 
-  get canMarkForResell() { return !!this.selectedYourToken && Number((this.selectedYourToken as any).status) === 1 && !this.loading; }
-  get canCancelReselling() { return !!this.selectedYourToken && Number((this.selectedYourToken as any).status) === 0 && !this.loading; }
+  // status 1 → Mark for Resell enabled
+  // status 0 → Cancel Reselling enabled
+  get canMarkForResell()   { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 1 && !this.loading; }
+  get canCancelReselling() { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 0 && !this.loading; }
   get canBuyPrimary() { return !!this.selectedPrimaryToken && !this.loading; }
   get canBuySecondary() { return !!this.selectedSecondaryToken && !this.loading; }
 
@@ -158,6 +169,7 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   markForResell(t: ServiceTokenDto) {
     this.loading = true;
+    this.selectedYourToken = null;
     this.serviceTokenApi.markServiceTokenForResell(t.id, t.rowVersion).subscribe({
       next: _ => { this.loading = false; this.toast.success('Token marked for resell.'); this.loadYourTokens(true); },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
@@ -166,6 +178,7 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   cancelReselling(t: ServiceTokenDto) {
     this.loading = true;
+    this.selectedYourToken = null;
     this.serviceTokenApi.cancelReselling(t.id, t.rowVersion).subscribe({
       next: _ => { this.loading = false; this.toast.success('Reselling cancelled.'); this.loadYourTokens(true); },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }

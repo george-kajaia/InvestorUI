@@ -1,8 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-const PWA_DISMISS_KEY = 'pwa-install-dismissed-at';
 
 interface FaqItem { q: string; a: string; open: boolean; }
 
@@ -13,15 +11,7 @@ interface FaqItem { q: string; a: string; open: boolean; }
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit, OnDestroy {
-  showInstallBanner = false;
-  private deferredPrompt: any = null;
-  private beforeInstallHandler = (e: Event) => {
-    e.preventDefault();
-    this.deferredPrompt = e;
-    if (!this.wasDismissedToday()) this.showInstallBanner = true;
-  };
-
+export class HomeComponent implements OnInit {
   faqs: FaqItem[] = [
     { q: 'What are service tokens?', a: 'Service tokens are digital vouchers issued by companies that you can purchase, redeem for a specific service, or resell to others on the platform.', open: false },
     { q: 'How do I buy service tokens?', a: 'Register as an investor on this page, browse available tokens in the marketplace, and purchase directly from the issuing company.', open: false },
@@ -33,34 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   year = new Date().getFullYear();
 
-  ngOnInit(): void {
-    window.addEventListener('beforeinstallprompt', this.beforeInstallHandler);
-    window.addEventListener('appinstalled', () => {
-      this.showInstallBanner = false;
-      this.deferredPrompt = null;
-    });
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('beforeinstallprompt', this.beforeInstallHandler);
-  }
+  ngOnInit(): void {}
 
   toggleFaq(item: FaqItem): void { item.open = !item.open; }
-
-  async installApp(): Promise<void> {
-    if (!this.deferredPrompt) return;
-    this.deferredPrompt.prompt();
-    const { outcome } = await this.deferredPrompt.userChoice;
-    if (outcome === 'accepted') this.showInstallBanner = false;
-    this.deferredPrompt = null;
-  }
-
-  dismissBanner(): void {
-    this.showInstallBanner = false;
-    localStorage.setItem(PWA_DISMISS_KEY, new Date().toDateString());
-  }
-
-  private wasDismissedToday(): boolean {
-    return localStorage.getItem(PWA_DISMISS_KEY) === new Date().toDateString();
-  }
 }

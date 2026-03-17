@@ -24,3 +24,51 @@ body {
 * { -webkit-tap-highlight-color: transparent; }
 
 a { text-decoration: none; }
+
+// ═══════════════════════════ TEST MODE BANNER ═══════════════════════════
+.test-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(90deg, #fef3c7, #fde68a);
+  border-bottom: 2px solid #f59e0b;
+  padding: 12px 24px;
+  font-size: 14px;
+  color: #78350f;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+
+  &__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+
+    strong:first-child {
+      font-size: 15px;
+      margin-right: 6px;
+    }
+
+    span {
+      opacity: 0.9;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 10px 16px;
+    font-size: 13px;
+
+    &__text {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+  }
+}
