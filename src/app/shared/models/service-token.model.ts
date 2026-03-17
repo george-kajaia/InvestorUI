@@ -29,4 +29,5 @@ export interface ServiceToken {
 
 export interface ServiceTokenDto extends ServiceToken {
   companyName: string;
+  productName: string;
 }

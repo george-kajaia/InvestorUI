@@ -43,33 +43,24 @@ $text-muted:   #64748b;
 
 // ── Tab toggle ────────────────────────────────────────────────
 .toggle-btn {
-  display: flex;
+  display: block;
   width: 100%;
-  background: #f3f4f6;
-  border: none;
-  border-radius: $radius-lg;
+  padding: $space-2 $space-4;
   margin-bottom: $space-6;
-  padding: 4px;
+  background: #f0fdf4;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  color: $text-muted;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
+  transition: all $transition-base;
+  @include hover-lift;
 
-  span {
-    flex: 1; padding: $space-2; text-align: center;
-    font-size: $font-size-sm; font-weight: $font-weight-semibold;
-    color: $text-muted; border-radius: $radius-md;
-    transition: all $transition-base; z-index: 1;
-  }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 4px; bottom: 4px;
-    width: calc(50% - 4px);
-    background: $surface;
-    border-radius: $radius-md;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    transition: transform $transition-slow;
+  &:hover {
+    background: rgba($primary, 0.1);
+    border-color: $primary;
+    color: $text;
   }
 }
 
