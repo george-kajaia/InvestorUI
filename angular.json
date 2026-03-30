@@ -29,6 +29,7 @@
               "src/styles.scss"
             ],
             "scripts": [],
+            "allowedCommonJsDependencies": ["qrcode"],
             "serviceWorker": true,
             "ngswConfigPath": "ngsw-config.json"
           },

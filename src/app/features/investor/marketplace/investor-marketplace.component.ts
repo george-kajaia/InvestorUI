@@ -11,13 +11,14 @@ import { ToastService } from '../../../core/services/toast.service';
 import { Company } from '../../../shared/models/company.model';
 import { ScheduleType } from '../../../shared/models/product.model';
 import { ServiceTokenDto, ServiceTokenStatus } from '../../../shared/models/service-token.model';
+import { GetServiceComponent, ServiceResult } from '../get-service/get-service.component';
 
 export type MarketplaceTab = 'yourTokens' | 'primaryMarket' | 'secondaryMarket';
 
 @Component({
   selector: 'app-investor-marketplace',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, GetServiceComponent],
   templateUrl: './investor-marketplace.component.html',
   styleUrls: ['./investor-marketplace.component.scss']
 })
@@ -39,6 +40,9 @@ export class InvestorMarketplaceComponent implements OnInit {
   selectedYourToken: ServiceTokenDto | null = null;
   selectedPrimaryToken: ServiceTokenDto | null = null;
   selectedSecondaryToken: ServiceTokenDto | null = null;
+
+  // Get Service QR overlay
+  getServiceToken: ServiceTokenDto | null = null;
 
   private toast = inject(ToastService);
 
@@ -151,8 +155,44 @@ export class InvestorMarketplaceComponent implements OnInit {
   // status 0 → Cancel Reselling enabled
   get canMarkForResell()   { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 1 && !this.loading; }
   get canCancelReselling() { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 0 && !this.loading; }
-  get canBuyPrimary() { return !!this.selectedPrimaryToken && !this.loading; }
-  get canBuySecondary() { return !!this.selectedSecondaryToken && !this.loading; }
+  get canGetService()      { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 1 && !this.loading; }
+  get canBuyPrimary()      { return !!this.selectedPrimaryToken && !this.loading; }
+  get canBuySecondary()    { return !!this.selectedSecondaryToken && !this.loading; }
+
+  // ── Get Service ────────────────────────────────────────────
+  openGetService() {
+    if (this.selectedYourToken) {
+      this.getServiceToken = this.selectedYourToken;
+    }
+  }
+
+  onGetServiceClosed(result: ServiceResult | null) {
+    this.getServiceToken = null;
+
+    if (!result) return; // user cancelled
+
+    if (result.success) {
+      this.toast.success('Service granted successfully!');
+      // Update token in list with new count and rowVersion from server
+      if (this.selectedYourToken && result.count !== undefined && result.rowVersion !== undefined) {
+        this.selectedYourToken = {
+          ...this.selectedYourToken,
+          count: result.count,
+          rowVersion: result.rowVersion
+        };
+        // Patch in the full list too
+        const idx = this.yourTokens.findIndex(t => t.id === this.selectedYourToken!.id);
+        if (idx >= 0) {
+          this.yourTokens[idx] = { ...this.yourTokens[idx], count: result.count!, rowVersion: result.rowVersion! };
+          this.applyLocalYourTokensFilters();
+          this.reconcileSelection();
+        }
+      }
+    } else {
+      this.toast.error(result.message ?? 'Service request failed.');
+      this.loadYourTokens(true); // refresh to get latest state
+    }
+  }
 
   // ── Mobile: open detail screen ─────────────────────────────
   openDetail(t: ServiceTokenDto, tab: MarketplaceTab) {

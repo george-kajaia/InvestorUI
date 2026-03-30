@@ -1,0 +1,203 @@
+$primary:      #059669;
+$primary-dark: #047857;
+$primary-bg:   #f0fdf4;
+$border:       #6ee7b7;
+$text:         #064e3b;
+$text-muted:   #64748b;
+$surface:      #ffffff;
+$error:        #dc2626;
+
+// ── Backdrop ────────────────────────────────────────────────
+.qr-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+// ── Modal ────────────────────────────────────────────────────
+.qr-modal {
+  position: relative;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 360px;
+  padding: 32px 24px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  &__close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: $text-muted;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover { background: #f1f5f9; color: $text; }
+  }
+
+  &__header {
+    text-align: center;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0 0 4px;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: $text-muted;
+    margin: 0;
+  }
+
+  &__token-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+  }
+
+  &__company {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text;
+  }
+
+  &__product {
+    font-size: 0.85rem;
+    color: $text-muted;
+  }
+
+  &__count {
+    font-size: 0.85rem;
+    color: $text-muted;
+    strong { color: $primary; }
+  }
+
+  &__qr-wrap {
+    background: $surface;
+    border: 2px solid $border;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba($primary, 0.1);
+  }
+
+  &__qr-img {
+    display: block;
+    width: 240px;
+    height: 240px;
+  }
+
+  &__hint {
+    font-size: 0.8rem;
+    color: $text-muted;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  &__footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 0;
+    color: $text-muted;
+    font-size: 0.9rem;
+
+    &--error {
+      color: $error;
+    }
+
+    &-icon {
+      font-size: 2rem;
+    }
+  }
+}
+
+// ── Waiting dot animation ────────────────────────────────────
+.qr-modal__waiting-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: $primary;
+  border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+// ── Spinner ────────────────────────────────────────────────
+.qr-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $border;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Buttons ────────────────────────────────────────────────
+.qr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+
+  &--ghost {
+    background: transparent;
+    border: 1px solid $border;
+    color: $text-muted;
+
+    &:hover { background: $primary-bg; color: $text; border-color: $primary; }
+  }
+}

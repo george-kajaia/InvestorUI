@@ -6,11 +6,12 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ServiceTokenDto, ServiceTokenStatus } from '../../../shared/models/service-token.model';
 import { ScheduleType } from '../../../shared/models/product.model';
 import { MarketplaceTab } from '../marketplace/investor-marketplace.component';
+import { GetServiceComponent, ServiceResult } from '../get-service/get-service.component';
 
 @Component({
   selector: 'app-token-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, GetServiceComponent],
   templateUrl: './token-detail.component.html',
   styleUrls: ['./token-detail.component.scss']
 })
@@ -19,6 +20,7 @@ export class TokenDetailComponent implements OnInit {
   tab: MarketplaceTab = 'yourTokens';
   investorPublicKey = '';
   loading = false;
+  showGetService = false;
 
   private toast = inject(ToastService);
 
@@ -40,6 +42,7 @@ export class TokenDetailComponent implements OnInit {
 
   get canMarkForResell()    { return this.isYourToken && Number((this.token as any)?.status) === 1; }
   get canCancelReselling()  { return this.isYourToken && Number((this.token as any)?.status) === 0; }
+  get canGetService()       { return this.isYourToken && Number((this.token as any)?.status) === 1; }
   get canBuy()              { return this.isPrimary || this.isSecondary; }
 
   markForResell() {
@@ -74,6 +77,20 @@ export class TokenDetailComponent implements OnInit {
   }
 
   goBack() { this.router.navigate(['/marketplace']); }
+
+  onGetServiceClosed(result: ServiceResult | null): void {
+    this.showGetService = false;
+    if (!result) return;
+
+    if (result.success) {
+      this.toast.success('Service granted successfully!');
+      if (this.token && result.count !== undefined && result.rowVersion !== undefined) {
+        this.token = { ...this.token, count: result.count, rowVersion: result.rowVersion };
+      }
+    } else {
+      this.toast.error(result.message ?? 'Service request failed.');
+    }
+  }
 
 
   // ── Template-safe getters (avoids 'as any' in templates) ──

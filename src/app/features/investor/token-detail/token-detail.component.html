@@ -84,6 +84,10 @@
 
 <!-- Action bar -->
 <div class="action-bar" *ngIf="token">
+  <button *ngIf="canGetService" class="action-bar__btn action-bar__btn--primary"
+    (click)="showGetService = true" [disabled]="loading">
+    Get Service
+  </button>
   <button *ngIf="canMarkForResell" class="action-bar__btn action-bar__btn--primary"
     (click)="markForResell()" [disabled]="loading">
     <span *ngIf="loading" class="spinner"></span>
@@ -103,3 +107,10 @@
     Cancel
   </button>
 </div>
+
+<!-- Get Service QR Overlay -->
+<app-get-service
+  *ngIf="showGetService && token"
+  [token]="token"
+  (closed)="onGetServiceClosed($event)">
+</app-get-service>

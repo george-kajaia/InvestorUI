@@ -18,6 +18,8 @@
     "@angular/platform-browser-dynamic": "^17.0.0",
     "@angular/router": "^17.0.0",
     "@angular/service-worker": "^17.0.0",
+    "@microsoft/signalr": "^8.0.0",
+    "qrcode": "^1.5.3",
     "rxjs": "^7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.0"
@@ -26,6 +28,7 @@
     "@angular-devkit/build-angular": "^17.3.17",
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
+    "@types/qrcode": "^1.5.5",
     "typescript": "~5.2.0"
   }
 }

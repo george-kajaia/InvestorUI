@@ -55,4 +55,10 @@ export class ServiceTokenApiService {
       params: { serviceTokenId, rowVersion: rowVersion.toString(), newInvestorPublicKey }
     });
   }
+
+  getService(serviceTokenId: string, rowVersion: number, connectionId: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/GetService`, null, {
+      params: { serviceTokenId, rowVersion: rowVersion.toString(), connectionId }
+    });
+  }
 }

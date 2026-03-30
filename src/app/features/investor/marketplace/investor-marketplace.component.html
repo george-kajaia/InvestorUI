@@ -46,6 +46,10 @@
     <!-- Desktop action buttons -->
     <div class="filter-bar__actions">
       <button *ngIf="activeTab === 'yourTokens'" class="action-btn action-btn--green"
+        (click)="openGetService()" [disabled]="!canGetService">
+        Get Service
+      </button>
+      <button *ngIf="activeTab === 'yourTokens'" class="action-btn action-btn--green"
         (click)="markSelectedForResell()" [disabled]="!canMarkForResell">
         Mark for Resell
       </button>
@@ -129,7 +133,12 @@
         </div>
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id }}</span>
-          <span class="token-card__chevron">›</span>
+          <button *ngIf="t.status === 1"
+            class="token-card__get-service-btn"
+            (click)="getServiceToken = t; $event.stopPropagation()">
+            Get Service
+          </button>
+          <span *ngIf="t.status !== 1" class="token-card__chevron">›</span>
         </div>
       </div>
       <p class="empty-msg" *ngIf="!loading && filteredYourTokens.length === 0">No tokens found.</p>
@@ -282,3 +291,10 @@
     <span class="bottom-nav__label">Secondary</span>
   </button>
 </nav>
+
+<!-- ═══ GET SERVICE QR OVERLAY ══════════════════════════════ -->
+<app-get-service
+  *ngIf="getServiceToken"
+  [token]="getServiceToken"
+  (closed)="onGetServiceClosed($event)">
+</app-get-service>

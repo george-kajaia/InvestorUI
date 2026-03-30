@@ -255,6 +255,19 @@ $app-bar-h:    56px;
 
   &__id { font-size: $font-size-xs; color: $text-muted; font-family: $font-family-mono; }
   &__chevron { font-size: 1.2rem; color: $primary; font-weight: $font-weight-bold; }
+
+  &__get-service-btn {
+    padding: 4px 12px;
+    border-radius: $radius-md;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    background: $primary;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background $transition-base;
+    &:hover { background: $primary-dark; }
+  }
 }
 
 // ── Badges ────────────────────────────────────────────────────
