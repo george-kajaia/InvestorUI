@@ -31,7 +31,6 @@ export class InvestorLoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Auto-switch to register mode if ?mode=register
     this.route.queryParams.subscribe(params => {
       if (params['mode'] === 'register') {
         this.isRegisterMode = true;
@@ -47,7 +46,13 @@ export class InvestorLoginComponent implements OnInit {
       next: investor => {
         this.loading = false;
         this.investorState.investor = investor;
-        this.router.navigate(['/marketplace']);
+        // If a token was clicked on the home page, go to primary market with that token pending
+        const pendingId = this.investorState.pendingTokenId;
+        if (pendingId) {
+          this.router.navigate(['/marketplace'], { queryParams: { tab: 'primaryMarket', openToken: pendingId } });
+        } else {
+          this.router.navigate(['/marketplace']);
+        }
       },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });

@@ -1,0 +1,342 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/mixins' as *;
+
+$primary:      #059669;
+$primary-dark: #047857;
+$primary-bg:   #f0fdf4;
+$primary-muted:#d1fae5;
+$border:       #e5e7eb;
+$surface:      #ffffff;
+$text:         #064e3b;
+$text-muted:   #6b7280;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: $primary-bg;
+  font-family: $font-family-base;
+  color: $text;
+}
+
+// ── Top bar ──────────────────────────────────────────────
+.cart-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: $surface;
+  border-bottom: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  height: 60px;
+
+  &__back {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $primary;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: $radius-md;
+    transition: background 0.15s;
+    &:hover { background: $primary-muted; }
+  }
+
+  &__title {
+    flex: 1;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+  }
+
+  &__checkout {
+    padding: 8px 22px;
+    background: $primary;
+    color: #fff;
+    border: none;
+    border-radius: $radius-full;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover:not(:disabled) { background: $primary-dark; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+}
+
+// ── Checkout message ────────────────────────────────────
+.checkout-msg {
+  margin: 20px 24px 0;
+  padding: 14px 18px;
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #713f12;
+}
+
+// ── Empty state ─────────────────────────────────────────
+.cart-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+
+  &__icon { font-size: 4rem; margin-bottom: 16px; }
+
+  h2 { font-size: 1.4rem; font-weight: 700; color: $text; margin: 0 0 8px; }
+  p  { color: $text-muted; margin: 0 0 24px; }
+}
+
+.back-btn {
+  padding: 10px 28px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: $radius-full;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  &:hover { background: $primary-dark; }
+}
+
+// ── Card grid ───────────────────────────────────────────
+.cart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  padding: 24px;
+}
+
+// ── Cart card ───────────────────────────────────────────
+.cart-card {
+  background: $surface;
+  border: 1px solid $primary-muted;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.18s, transform 0.18s;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(5,150,105,0.12);
+    transform: translateY(-2px);
+  }
+
+  &__image {
+    height: 160px;
+    background: $primary-bg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
+  &__image-placeholder {
+    font-size: 3.5rem;
+    color: $primary-muted;
+  }
+
+  &__body {
+    padding: 16px;
+    flex: 1;
+  }
+
+  &__company {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $primary;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  &__product {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $text;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    min-width: 60px;
+  }
+
+  &__stat-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__stat-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text;
+  }
+
+  &__price {
+    color: $primary;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  &__id {
+    font-size: 0.68rem;
+    color: $text-muted;
+    font-family: $font-family-mono;
+    word-break: break-all;
+  }
+
+  &__remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #fca5a5;
+    border-radius: 50%;
+    color: #b91c1c;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    &:hover { background: #fee2e2; }
+  }
+}
+
+// ── Checkout summary ────────────────────────────────────
+.checkout-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 24px 0;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid $border;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  &__success {
+    font-weight: 600;
+    color: #065f46;
+    background: #d1fae5;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+
+  &__error {
+    font-weight: 600;
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+
+  &__back-btn {
+    margin-left: auto;
+    padding: 8px 20px;
+    background: $primary;
+    color: #fff;
+    border: none;
+    border-radius: $radius-full;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    &:hover { background: $primary-dark; }
+  }
+}
+
+// ── Notice banner ───────────────────────────────────────
+.notice {
+  margin: 16px 24px 0;
+  padding: 12px 16px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+
+// ── Spinner ─────────────────────────────────────────────
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+// ── Card state variants ─────────────────────────────────
+.cart-card {
+  &--success {
+    border-color: #6ee7b7;
+    background: #f0fdf4;
+  }
+  &--error {
+    border-color: #fca5a5;
+    background: #fff1f1;
+  }
+  &--processing {
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+}
+
+// ── Per-card status label ───────────────────────────────
+.cart-card__status {
+  margin-top: 8px;
+}
+
+.status {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+
+  &--pending    { background: #f3f4f6; color: #6b7280; }
+  &--processing { background: #dbeafe; color: #1d4ed8; }
+  &--success    { background: #d1fae5; color: #065f46; }
+  &--error      { background: #fee2e2; color: #991b1b; word-break: break-word; display: block; border-radius: 8px; padding: 6px 10px; }
+}
+
+// ── Market tag ──────────────────────────────────────────
+.cart-card__market-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &--primary   { background: #d1fae5; color: #065f46; }
+  &--secondary { background: #dbeafe; color: #1e3a8a; }
+}

@@ -1,11 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { CompanyApiService } from '../../../core/api/company-api.service';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
+import { CartService, CartMarket } from '../../../core/services/cart.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 import { Company } from '../../../shared/models/company.model';
@@ -37,9 +38,9 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   loading = false;
 
-  selectedYourToken: ServiceTokenDto | null = null;
-  selectedPrimaryToken: ServiceTokenDto | null = null;
-  selectedSecondaryToken: ServiceTokenDto | null = null;
+  // Token detail modal
+  detailToken: ServiceTokenDto | null = null;
+  detailTab: MarketplaceTab = 'primaryMarket';
 
   // Get Service QR overlay
   getServiceToken: ServiceTokenDto | null = null;
@@ -48,9 +49,11 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private investorState: InvestorStateService,
     private companyApi: CompanyApiService,
-    private serviceTokenApi: ServiceTokenApiService
+    private serviceTokenApi: ServiceTokenApiService,
+    public cartService: CartService
   ) {}
 
   ngOnInit(): void {
@@ -58,12 +61,29 @@ export class InvestorMarketplaceComponent implements OnInit {
     if (!investor) { this.router.navigate(['/login']); return; }
     this.investorPublicKey = investor.publicKey;
     this.loadCompanies();
-    this.loadYourTokens();
+
+    // Check query params — e.g. from home page click after login
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'] as MarketplaceTab | undefined;
+      const openToken = params['openToken'] as string | undefined;
+
+      if (tab === 'primaryMarket') {
+        this.activeTab = 'primaryMarket';
+        this.loadPrimaryMarket(false, openToken);
+      } else if (tab === 'secondaryMarket') {
+        this.activeTab = 'secondaryMarket';
+        this.loadSecondaryMarket();
+      } else {
+        this.loadYourTokens();
+      }
+    });
+
+    // Clear pending token after handling
+    this.investorState.pendingTokenId = null;
   }
 
   setTab(tab: MarketplaceTab) {
     this.activeTab = tab;
-    this.clearSelection();
     if (tab === 'yourTokens') this.loadYourTokens();
     else if (tab === 'primaryMarket') this.loadPrimaryMarket();
     else this.loadSecondaryMarket();
@@ -82,10 +102,9 @@ export class InvestorMarketplaceComponent implements OnInit {
       next: list => {
         this.yourTokens = list ?? [];
         this.applyLocalYourTokensFilters();
-        this.reconcileSelection();
         this.loading = false;
       },
-      error: err => {
+      error: () => {
         this.loading = false;
         if (!silent) this.toast.errorWithRetry('Failed to load your tokens.', () => this.loadYourTokens());
       }
@@ -114,129 +133,87 @@ export class InvestorMarketplaceComponent implements OnInit {
     let result = [...(this.yourTokens ?? [])];
     const cId = Number(this.marketCompanyId);
     const rId = Number(this.marketRequestId);
-    if (!isNaN(cId) && cId !== -1) result = result.filter(t => Number((t as any).companyId) === cId);
-    if (!isNaN(rId) && rId !== -1) result = result.filter(t => Number((t as any).requestId) === rId);
+    if (!isNaN(cId) && cId !== -1) result = result.filter(t => Number(t.companyId) === cId);
+    if (!isNaN(rId) && rId !== -1) result = result.filter(t => Number(t.requestId) === rId);
     this.filteredYourTokens = result;
   }
 
-  clearSelection() {
-    this.selectedYourToken = null;
-    this.selectedPrimaryToken = null;
-    this.selectedSecondaryToken = null;
+  // ── Token detail modal ─────────────────────────────────────
+  openDetail(token: ServiceTokenDto, tab: MarketplaceTab) {
+    this.detailToken = token;
+    this.detailTab = tab;
   }
 
-  private reconcileSelection() {
-    if (this.selectedYourToken) {
-      const fresh = this.filteredYourTokens.find(t => t.id === this.selectedYourToken?.id);
-      this.selectedYourToken = fresh ?? null;
-    }
-    if (this.selectedPrimaryToken) {
-      const fresh = this.primaryMarketTokens.find(t => t.id === this.selectedPrimaryToken?.id);
-      this.selectedPrimaryToken = fresh ?? null;
-    }
-    if (this.selectedSecondaryToken) {
-      const fresh = this.secondaryMarketTokens.find(t => t.id === this.selectedSecondaryToken?.id);
-      this.selectedSecondaryToken = fresh ?? null;
-    }
+  closeDetail() { this.detailToken = null; }
+
+  addToCart(token: ServiceTokenDto) {
+    this.cartService.add(token, this.detailTab === 'primaryMarket' ? 'primaryMarket' : 'secondaryMarket');
+    this.toast.success(`"${token.productName}" added to cart.`);
   }
 
-  selectYourToken(t: ServiceTokenDto) {
-    // Always pick the fresh reference from the live list so status is current
-    this.selectedYourToken = this.filteredYourTokens.find(x => x.id === t.id) ?? t;
-  }
-  selectPrimaryToken(t: ServiceTokenDto) { this.selectedPrimaryToken = t; }
-  selectSecondaryToken(t: ServiceTokenDto) { this.selectedSecondaryToken = t; }
+  // ── Cart ──────────────────────────────────────────────────
+  openCart() { this.router.navigate(['/cart']); }
 
-  isSelectedYour(t: ServiceTokenDto) { return this.selectedYourToken?.id === t.id; }
-  isSelectedPrimary(t: ServiceTokenDto) { return this.selectedPrimaryToken?.id === t.id; }
-  isSelectedSecondary(t: ServiceTokenDto) { return this.selectedSecondaryToken?.id === t.id; }
-
-  // status 1 → Mark for Resell enabled
-  // status 0 → Cancel Reselling enabled
-  get canMarkForResell()   { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 1 && !this.loading; }
-  get canCancelReselling() { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 0 && !this.loading; }
-  get canGetService()      { return !!this.selectedYourToken && Number(this.selectedYourToken.status) === 1 && !this.loading; }
-  get canBuyPrimary()      { return !!this.selectedPrimaryToken && !this.loading; }
-  get canBuySecondary()    { return !!this.selectedSecondaryToken && !this.loading; }
-
-  // ── Get Service ────────────────────────────────────────────
-  openGetService() {
-    if (this.selectedYourToken) {
-      this.getServiceToken = this.selectedYourToken;
-    }
-  }
+  // ── Get Service QR overlay ─────────────────────────────────
+  openGetService(t: ServiceTokenDto) { this.getServiceToken = t; }
 
   onGetServiceClosed(result: ServiceResult | null) {
     this.getServiceToken = null;
-
-    if (!result) return; // user cancelled
-
+    if (!result) return;
     if (result.success) {
       this.toast.success('Service granted successfully!');
-      // Update token in list with new count and rowVersion from server
-      if (this.selectedYourToken && result.count !== undefined && result.rowVersion !== undefined) {
-        this.selectedYourToken = {
-          ...this.selectedYourToken,
-          count: result.count,
-          rowVersion: result.rowVersion
-        };
-        // Patch in the full list too
-        const idx = this.yourTokens.findIndex(t => t.id === this.selectedYourToken!.id);
-        if (idx >= 0) {
-          this.yourTokens[idx] = { ...this.yourTokens[idx], count: result.count!, rowVersion: result.rowVersion! };
-          this.applyLocalYourTokensFilters();
-          this.reconcileSelection();
-        }
-      }
+      this.loadYourTokens(true);
     } else {
       this.toast.error(result.message ?? 'Service request failed.');
-      this.loadYourTokens(true); // refresh to get latest state
+      this.loadYourTokens(true);
     }
   }
 
-  // ── Mobile: open detail screen ─────────────────────────────
-  openDetail(t: ServiceTokenDto, tab: MarketplaceTab) {
-    this.router.navigate(['/token', t.id], {
-      state: { token: t, tab, investorPublicKey: this.investorPublicKey }
-    });
-  }
-
-  // ── Actions (desktop table) ────────────────────────────────
-  markSelectedForResell() { if (this.selectedYourToken) this.markForResell(this.selectedYourToken); }
-  cancelSelectedReselling() { if (this.selectedYourToken) this.cancelReselling(this.selectedYourToken); }
-  buySelectedPrimary() { if (this.selectedPrimaryToken) this.buyPrimary(this.selectedPrimaryToken); }
-  buySelectedSecondary() { if (this.selectedSecondaryToken) this.buySecondary(this.selectedSecondaryToken); }
-
-  markForResell(t: ServiceTokenDto) {
+  // ── Mark / Cancel / Buy ────────────────────────────────────
+  markForResell(t: ServiceTokenDto, event?: Event) {
+    event?.stopPropagation();
     this.loading = true;
-    this.selectedYourToken = null;
     this.serviceTokenApi.markServiceTokenForResell(t.id, t.rowVersion).subscribe({
       next: _ => { this.loading = false; this.toast.success('Token marked for resell.'); this.loadYourTokens(true); },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
   }
 
-  cancelReselling(t: ServiceTokenDto) {
+  cancelReselling(t: ServiceTokenDto, event?: Event) {
+    event?.stopPropagation();
     this.loading = true;
-    this.selectedYourToken = null;
     this.serviceTokenApi.cancelReselling(t.id, t.rowVersion).subscribe({
       next: _ => { this.loading = false; this.toast.success('Reselling cancelled.'); this.loadYourTokens(true); },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
   }
 
-  loadPrimaryMarket(silent = false) {
+  loadPrimaryMarket(silent = false, openTokenId?: string) {
     this.loading = true;
     this.serviceTokenApi.getPrimaryMarketServiceTokens(this.marketCompanyId, this.marketRequestId).subscribe({
-      next: list => { this.primaryMarketTokens = list ?? []; this.reconcileSelection(); this.loading = false; },
-      error: err => { this.loading = false; if (!silent) this.toast.errorWithRetry('Failed to load primary market.', () => this.loadPrimaryMarket()); }
+      next: list => {
+        this.primaryMarketTokens = list ?? [];
+        this.loading = false;
+        if (openTokenId) {
+          const t = this.primaryMarketTokens.find(x => x.id === openTokenId);
+          if (t) this.openDetail(t, 'primaryMarket');
+        }
+      },
+      error: () => { this.loading = false; if (!silent) this.toast.errorWithRetry('Failed to load primary market.', () => this.loadPrimaryMarket()); }
     });
   }
 
-  buyPrimary(t: ServiceTokenDto) {
+  buyPrimary(t: ServiceTokenDto, event?: Event) {
+    event?.stopPropagation();
     this.loading = true;
     this.serviceTokenApi.buyPrimaryServiceToken(t.id, t.rowVersion, this.investorPublicKey).subscribe({
-      next: _ => { this.loading = false; this.toast.success('Token purchased!'); this.loadYourTokens(true); this.loadPrimaryMarket(true); },
+      next: _ => {
+        this.loading = false;
+        this.toast.success('Token purchased!');
+        this.closeDetail();
+        this.loadYourTokens(true);
+        this.loadPrimaryMarket(true);
+      },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
   }
@@ -244,15 +221,22 @@ export class InvestorMarketplaceComponent implements OnInit {
   loadSecondaryMarket(silent = false) {
     this.loading = true;
     this.serviceTokenApi.getSecondaryMarketServiceTokens(this.investorPublicKey, this.marketCompanyId, this.marketRequestId).subscribe({
-      next: list => { this.secondaryMarketTokens = list ?? []; this.reconcileSelection(); this.loading = false; },
-      error: err => { this.loading = false; if (!silent) this.toast.errorWithRetry('Failed to load secondary market.', () => this.loadSecondaryMarket()); }
+      next: list => { this.secondaryMarketTokens = list ?? []; this.loading = false; },
+      error: () => { this.loading = false; if (!silent) this.toast.errorWithRetry('Failed to load secondary market.', () => this.loadSecondaryMarket()); }
     });
   }
 
-  buySecondary(t: ServiceTokenDto) {
+  buySecondary(t: ServiceTokenDto, event?: Event) {
+    event?.stopPropagation();
     this.loading = true;
     this.serviceTokenApi.buySecondaryServiceToken(t.id, t.rowVersion, this.investorPublicKey).subscribe({
-      next: _ => { this.loading = false; this.toast.success('Token purchased!'); this.loadYourTokens(true); this.loadSecondaryMarket(true); },
+      next: _ => {
+        this.loading = false;
+        this.toast.success('Token purchased!');
+        this.closeDetail();
+        this.loadYourTokens(true);
+        this.loadSecondaryMarket(true);
+      },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
   }
@@ -288,5 +272,10 @@ export class InvestorMarketplaceComponent implements OnInit {
       case 2: return 'Weekly'; case 3: return 'Monthly';
       case 4: return 'Yearly'; default: return `Period ${v}`;
     }
+  }
+
+  pictogramSrc(token: ServiceTokenDto): string | null {
+    if (!token.pictogram) return null;
+    return `data:image/png;base64,${token.pictogram}`;
   }
 }

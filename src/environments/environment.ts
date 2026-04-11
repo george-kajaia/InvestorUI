@@ -5,5 +5,8 @@ export const environment = {
 
   // Production — API and SignalR hub on same domain
   apiBaseUrl: 'https://service-tokens.com/api',
-  signalRHubUrl: 'https://service-tokens.com/hubs/redemption'
+  signalRHubUrl: 'https://service-tokens.com/hubs/redemption',
+
+  // Number of featured tokens shown on the home page (between hero and "How It Works")
+  homeFeaturedLimit: 20
 };

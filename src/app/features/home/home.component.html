@@ -16,10 +16,8 @@
       <a class="btn btn--outline" routerLink="/login">Login</a>
       <a class="btn btn--primary" routerLink="/login" [queryParams]="{mode: 'register'}">Register as Investor</a>
     </div>
-
   </div>
 </nav>
-
 
 <!-- ═══════════════════════════ TEST MODE BANNER ═══════════════════════════ -->
 <div class="test-mode-banner" role="alert" aria-live="polite">
@@ -61,6 +59,43 @@
             <span class="token__icon">✓</span>
             <span class="token__label">Redeem</span>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ FEATURED TOKENS ═══════════════════════════ -->
+  <section class="featured-tokens" id="featured-tokens" aria-labelledby="ft-heading">
+    <div class="section-inner">
+      <h2 class="section-title" id="ft-heading">Available Service Tokens</h2>
+      <p class="section-subtitle">Browse tokens currently available on the primary market. Click any card to get started.</p>
+
+      <div *ngIf="featuredLoading" class="featured-tokens__loading">Loading tokens…</div>
+
+      <div class="featured-tokens__grid" *ngIf="!featuredLoading">
+        <div class="ft-card" *ngFor="let t of featuredTokens" (click)="onFeaturedCardClick(t)" role="button" tabindex="0"
+             (keydown.enter)="onFeaturedCardClick(t)" (keydown.space)="onFeaturedCardClick(t)">
+          <div class="ft-card__image">
+            <img *ngIf="pictogramSrc(t)" [src]="pictogramSrc(t)" alt="{{ t.productName }} pictogram" />
+            <div *ngIf="!pictogramSrc(t)" class="ft-card__image-placeholder">◈</div>
+          </div>
+          <div class="ft-card__body">
+            <div class="ft-card__company">{{ t.companyName }}</div>
+            <div class="ft-card__product">{{ t.productName }}</div>
+            <div class="ft-card__stats">
+              <span class="ft-card__stat"><span class="ft-card__stat-label">Count</span> {{ t.count }}</span>
+              <span class="ft-card__stat"><span class="ft-card__stat-label">Services</span> {{ t.serviceCount }}</span>
+              <span class="ft-card__stat"><span class="ft-card__stat-label">Schedule</span> {{ scheduleLabel(t) }}</span>
+            </div>
+          </div>
+          <div class="ft-card__footer">
+            <span class="ft-card__price" *ngIf="t.price">{{ t.price | currency }}</span>
+            <span class="ft-card__cta">Login to Buy →</span>
+          </div>
+        </div>
+
+        <div *ngIf="featuredTokens.length === 0" class="featured-tokens__empty">
+          No tokens currently available. Check back soon.
         </div>
       </div>
     </div>

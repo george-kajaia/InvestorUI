@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
+import { ServiceTokenApiService } from '../../core/api/service-token-api.service';
+import { InvestorStateService } from '../../core/state/investor-state.service';
+import { ServiceTokenDto } from '../../shared/models/service-token.model';
+import { environment } from '../../../environments/environment';
 
 interface FaqItem { q: string; a: string; open: boolean; }
 
@@ -22,8 +26,42 @@ export class HomeComponent implements OnInit {
   ];
 
   year = new Date().getFullYear();
+  featuredTokens: ServiceTokenDto[] = [];
+  featuredLoading = true;
 
-  ngOnInit(): void {}
+  constructor(
+    private serviceTokenApi: ServiceTokenApiService,
+    private investorState: InvestorStateService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.serviceTokenApi.getPrimaryMarketServiceTokens(-1, -1).subscribe({
+      next: list => {
+        this.featuredTokens = (list ?? []).slice(0, environment.homeFeaturedLimit);
+        this.featuredLoading = false;
+      },
+      error: () => { this.featuredLoading = false; }
+    });
+  }
 
   toggleFaq(item: FaqItem): void { item.open = !item.open; }
+
+  onFeaturedCardClick(token: ServiceTokenDto): void {
+    this.investorState.pendingTokenId = token.id;
+    this.router.navigate(['/login']);
+  }
+
+  pictogramSrc(token: ServiceTokenDto): string | null {
+    if (!token.pictogram) return null;
+    return `data:image/png;base64,${token.pictogram}`;
+  }
+
+  scheduleLabel(token: ServiceTokenDto): string {
+    const st = token.scheduleType;
+    if (!st) return '—';
+    const labels: Record<number, string> = { 0: 'None', 1: 'Daily', 2: 'Weekly', 3: 'Monthly', 4: 'Yearly' };
+    const base = labels[st.periodType] ?? `Period ${st.periodType}`;
+    return st.periodNumber > 0 ? `${base} / ${st.periodNumber}` : base;
+  }
 }

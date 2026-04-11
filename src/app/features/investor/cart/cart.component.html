@@ -1,0 +1,116 @@
+<div class="cart-page">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="cart-header">
+    <button class="cart-header__back" (click)="goBack()" [disabled]="checkoutLoading">← Back</button>
+    <h1 class="cart-header__title">🛒 Your Cart</h1>
+    <button class="cart-header__checkout"
+      (click)="checkout()"
+      [disabled]="cartService.count === 0 || !hasPrimaryItems || checkoutStarted || checkoutLoading">
+      <span *ngIf="!checkoutLoading">Checkout</span>
+      <span *ngIf="checkoutLoading" class="spinner">⟳</span>
+    </button>
+  </header>
+
+  <!-- ── Checkout result summary ─────────────────────────── -->
+  <div class="checkout-summary" *ngIf="checkoutDone">
+    <span class="checkout-summary__success" *ngIf="successCount > 0">
+      ✓ {{ successCount }} token{{ successCount !== 1 ? 's' : '' }} purchased successfully.
+    </span>
+    <span class="checkout-summary__error" *ngIf="errorCount > 0">
+      ✕ {{ errorCount }} token{{ errorCount !== 1 ? 's' : '' }} failed.
+    </span>
+    <button class="checkout-summary__back-btn" (click)="goBack()">Go to Marketplace</button>
+  </div>
+
+  <!-- ── No primary items notice ─────────────────────────── -->
+  <div class="notice" *ngIf="cartService.count > 0 && !hasPrimaryItems && !checkoutStarted">
+    ℹ️ Only <strong>Primary Market</strong> tokens can be purchased at checkout.
+    Secondary market tokens are shown for reference only.
+  </div>
+
+  <!-- ── Empty state ─────────────────────────────────────── -->
+  <div class="cart-empty" *ngIf="cartService.count === 0 && !checkoutStarted">
+    <div class="cart-empty__icon">🛒</div>
+    <h2>Your cart is empty</h2>
+    <p>Browse the Primary or Secondary Market to add tokens.</p>
+    <button class="back-btn" (click)="goBack()">Go to Marketplace</button>
+  </div>
+
+  <!-- ── Checkout progress view ──────────────────────────── -->
+  <div class="cart-grid" *ngIf="checkoutStarted">
+    <div class="cart-card" *ngFor="let s of checkoutStates"
+         [class.cart-card--success]="s.status === 'success'"
+         [class.cart-card--error]="s.status === 'error'"
+         [class.cart-card--processing]="s.status === 'processing'">
+      <div class="cart-card__image">
+        <img *ngIf="pictogramSrc(s.item.token)" [src]="pictogramSrc(s.item.token)" [alt]="s.item.token.productName" />
+        <div *ngIf="!pictogramSrc(s.item.token)" class="cart-card__image-placeholder">◈</div>
+      </div>
+      <div class="cart-card__body">
+        <div class="cart-card__company">{{ s.item.token.companyName }}</div>
+        <div class="cart-card__product">{{ s.item.token.productName }}</div>
+        <div class="cart-card__stats">
+          <div class="cart-card__stat">
+            <span class="cart-card__stat-label">Count</span>
+            <span class="cart-card__stat-value">{{ s.item.token.count }}</span>
+          </div>
+          <div class="cart-card__stat">
+            <span class="cart-card__stat-label">Services</span>
+            <span class="cart-card__stat-value">{{ s.item.token.serviceCount }}</span>
+          </div>
+          <div class="cart-card__stat" *ngIf="s.item.token.price">
+            <span class="cart-card__stat-label">Price</span>
+            <span class="cart-card__stat-value cart-card__price">{{ s.item.token.price | currency }}</span>
+          </div>
+        </div>
+        <div class="cart-card__status">
+          <span *ngIf="s.status === 'pending'"    class="status status--pending">Waiting…</span>
+          <span *ngIf="s.status === 'processing'" class="status status--processing">⟳ Processing…</span>
+          <span *ngIf="s.status === 'success'"    class="status status--success">✓ Purchased</span>
+          <span *ngIf="s.status === 'error'"      class="status status--error">✕ {{ s.errorMsg }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Normal cart card grid ───────────────────────────── -->
+  <div class="cart-grid" *ngIf="!checkoutStarted && cartService.count > 0">
+    <div class="cart-card" *ngFor="let i of cartService.items">
+      <div class="cart-card__image">
+        <img *ngIf="pictogramSrc(i.token)" [src]="pictogramSrc(i.token)" [alt]="i.token.productName" />
+        <div *ngIf="!pictogramSrc(i.token)" class="cart-card__image-placeholder">◈</div>
+      </div>
+      <div class="cart-card__body">
+        <div class="cart-card__company">{{ i.token.companyName }}</div>
+        <div class="cart-card__product">{{ i.token.productName }}</div>
+        <div class="cart-card__market-tag"
+             [class.cart-card__market-tag--primary]="i.market === 'primaryMarket'"
+             [class.cart-card__market-tag--secondary]="i.market === 'secondaryMarket'">
+          {{ i.market === 'primaryMarket' ? 'Primary Market' : 'Secondary Market' }}
+        </div>
+        <div class="cart-card__stats">
+          <div class="cart-card__stat">
+            <span class="cart-card__stat-label">Count</span>
+            <span class="cart-card__stat-value">{{ i.token.count }}</span>
+          </div>
+          <div class="cart-card__stat">
+            <span class="cart-card__stat-label">Services</span>
+            <span class="cart-card__stat-value">{{ i.token.serviceCount }}</span>
+          </div>
+          <div class="cart-card__stat">
+            <span class="cart-card__stat-label">Schedule</span>
+            <span class="cart-card__stat-value">{{ scheduleLabel(i.token) }}</span>
+          </div>
+          <div class="cart-card__stat" *ngIf="i.token.price">
+            <span class="cart-card__stat-label">Price</span>
+            <span class="cart-card__stat-value cart-card__price">{{ i.token.price | currency }}</span>
+          </div>
+        </div>
+        <div class="cart-card__id">Token #{{ i.token.id }}</div>
+      </div>
+      <button class="cart-card__remove" (click)="remove(i.token.id)" title="Remove from cart">×</button>
+    </div>
+  </div>
+
+</div>
