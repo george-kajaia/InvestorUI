@@ -5,8 +5,8 @@ import { CartService, CartItem } from '../../../core/services/cart.service';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { ServiceTokenDto } from '../../../shared/models/service-token.model';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 export type ItemStatus = 'pending' | 'processing' | 'success' | 'error';
 
@@ -42,14 +42,14 @@ export class CartComponent {
     const investor = this.investorState.investor;
     if (!investor) { this.router.navigate(['/login']); return; }
 
-    const primaryItems = this.cartService.items.filter(i => i.market === 'primaryMarket');
-    if (primaryItems.length === 0) return;
+    const allItems = this.cartService.items;
+    if (allItems.length === 0) return;
 
     this.checkoutStarted = true;
     this.checkoutLoading = true;
 
-    // Build per-item state list (only primary market items participate in checkout)
-    this.checkoutStates = primaryItems.map(item => ({
+    // Build per-item state list for all cart items (primary and secondary)
+    this.checkoutStates = allItems.map(item => ({
       item,
       status: 'pending' as ItemStatus,
       errorMsg: ''
@@ -64,34 +64,43 @@ export class CartComponent {
       this.checkoutLoading = false;
       this.checkoutDone = true;
 
-      // Remove successfully purchased items from cart
+      // Remove successfully purchased items from cart (local only — already bought, no need to CancelInCart)
       const successIds = this.checkoutStates
         .filter(s => s.status === 'success')
         .map(s => s.item.token.id);
-      successIds.forEach(id => this.cartService.remove(id));
+      successIds.forEach(id => this.cartService.removeLocal(id));
       return;
     }
 
     const state = this.checkoutStates[index];
     state.status = 'processing';
 
-    this.serviceTokenApi
-      .buyPrimaryServiceToken(state.item.token.id, state.item.token.rowVersion, publicKey)
-      .pipe(catchError(err => {
+    // Fetch the latest token data first to get the current rowVersion, then purchase
+    this.serviceTokenApi.getServiceToken(state.item.token.id).pipe(
+      switchMap(freshToken => {
+        return state.item.market === 'secondaryMarket'
+          ? this.serviceTokenApi.buySecondaryServiceToken(freshToken.id, freshToken.rowVersion, publicKey)
+          : this.serviceTokenApi.buyPrimaryServiceToken(freshToken.id, freshToken.rowVersion, publicKey);
+      }),
+      catchError(err => {
         state.status = 'error';
         const msg = err?.error;
         state.errorMsg = typeof msg === 'string' ? msg : (msg?.message ?? 'Purchase failed.');
         return of(null);
-      }))
-      .subscribe(result => {
-        if (state.status !== 'error') {
-          state.status = 'success';
-        }
-        this.processNext(index + 1, publicKey);
-      });
+      })
+    ).subscribe(result => {
+      if (state.status !== 'error') {
+        state.status = 'success';
+      }
+      this.processNext(index + 1, publicKey);
+    });
   }
 
-  remove(id: string) { this.cartService.remove(id); }
+  remove(id: string) {
+    this.cartService.remove(id).subscribe({
+      error: err => console.error('Failed to cancel cart reservation:', err)
+    });
+  }
 
   pictogramSrc(token: ServiceTokenDto): string | null {
     if (!token.pictogram) return null;
@@ -106,8 +115,8 @@ export class CartComponent {
     return st.periodNumber > 0 ? `${base} / ${st.periodNumber}` : base;
   }
 
-  get hasPrimaryItems(): boolean {
-    return this.cartService.items.some(i => i.market === 'primaryMarket');
+  get hasCheckoutableItems(): boolean {
+    return this.cartService.items.length > 0;
   }
 
   get allDone(): boolean {

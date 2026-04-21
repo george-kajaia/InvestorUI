@@ -10,6 +10,12 @@ export class ServiceTokenApiService {
 
   constructor(private http: HttpClient) {}
 
+  getServiceToken(serviceTokenId: string): Observable<ServiceTokenDto> {
+    return this.http.get<ServiceTokenDto>(`${this.baseUrl}/GetServiceToken`, {
+      params: { serviceTokenId }
+    });
+  }
+
   getInvestorServiceTokens(investorPublicKey: string): Observable<ServiceTokenDto[]> {
     return this.http.get<ServiceTokenDto[]>(`${this.baseUrl}/GetInvestorServiceTokens`, {
       params: { investorPublicKey }
@@ -59,6 +65,18 @@ export class ServiceTokenApiService {
   getService(serviceTokenId: string, rowVersion: number, connectionId: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/GetService`, null, {
       params: { serviceTokenId, rowVersion: rowVersion.toString(), connectionId }
+    });
+  }
+
+  markServiceTokenInCart(serviceTokenId: string, rowVersion: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/MarkServiceTokenInCart`, null, {
+      params: { serviceTokenId, rowVersion: rowVersion.toString() }
+    });
+  }
+
+  cancelInCart(serviceTokenId: string, rowVersion: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/CancelInCart`, null, {
+      params: { serviceTokenId, rowVersion: rowVersion.toString() }
     });
   }
 }

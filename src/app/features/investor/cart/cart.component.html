@@ -6,7 +6,7 @@
     <h1 class="cart-header__title">🛒 Your Cart</h1>
     <button class="cart-header__checkout"
       (click)="checkout()"
-      [disabled]="cartService.count === 0 || !hasPrimaryItems || checkoutStarted || checkoutLoading">
+      [disabled]="cartService.count === 0 || !hasCheckoutableItems || checkoutStarted || checkoutLoading">
       <span *ngIf="!checkoutLoading">Checkout</span>
       <span *ngIf="checkoutLoading" class="spinner">⟳</span>
     </button>
@@ -23,11 +23,6 @@
     <button class="checkout-summary__back-btn" (click)="goBack()">Go to Marketplace</button>
   </div>
 
-  <!-- ── No primary items notice ─────────────────────────── -->
-  <div class="notice" *ngIf="cartService.count > 0 && !hasPrimaryItems && !checkoutStarted">
-    ℹ️ Only <strong>Primary Market</strong> tokens can be purchased at checkout.
-    Secondary market tokens are shown for reference only.
-  </div>
 
   <!-- ── Empty state ─────────────────────────────────────── -->
   <div class="cart-empty" *ngIf="cartService.count === 0 && !checkoutStarted">
@@ -50,6 +45,11 @@
       <div class="cart-card__body">
         <div class="cart-card__company">{{ s.item.token.companyName }}</div>
         <div class="cart-card__product">{{ s.item.token.productName }}</div>
+        <div class="cart-card__market-tag"
+             [class.cart-card__market-tag--primary]="s.item.market === 'primaryMarket'"
+             [class.cart-card__market-tag--secondary]="s.item.market === 'secondaryMarket'">
+          {{ s.item.market === 'primaryMarket' ? 'Primary Market' : 'Secondary Market' }}
+        </div>
         <div class="cart-card__stats">
           <div class="cart-card__stat">
             <span class="cart-card__stat-label">Count</span>

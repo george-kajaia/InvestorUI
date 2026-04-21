@@ -6,7 +6,7 @@
       <span class="app-bar__title">Marketplace</span>
     </div>
     <div class="app-bar__meta">
-      <span class="app-bar__key" title="Your public key">{{ investorPublicKey | slice:0:12 }}…</span>
+      <span class="app-bar__key" title="{{ investorPublicKey }}">{{ investorName }}</span>
       <button class="app-bar__refresh" (click)="refreshCurrentTab()" [disabled]="loading" aria-label="Refresh">
         <span [class.spinning]="loading">↻</span>
       </button>
@@ -107,7 +107,7 @@
   <!-- ── Primary Market ───────────────────────────────────── -->
   <section *ngIf="activeTab === 'primaryMarket'" class="tab-content">
     <div class="card-grid">
-      <div class="token-card token-card--buyable" *ngFor="let t of primaryMarketTokens"
+      <div class="token-card token-card--buyable" *ngFor="let t of visiblePrimaryTokens"
            (click)="openDetail(t, 'primaryMarket')">
         <div class="token-card__image">
           <img *ngIf="pictogramSrc(t)" [src]="pictogramSrc(t)" [alt]="t.productName" />
@@ -142,13 +142,13 @@
         </div>
       </div>
     </div>
-    <p class="empty-msg" *ngIf="!loading && primaryMarketTokens.length === 0">No tokens available.</p>
+    <p class="empty-msg" *ngIf="!loading && visiblePrimaryTokens.length === 0">No tokens available.</p>
   </section>
 
   <!-- ── Secondary Market ─────────────────────────────────── -->
   <section *ngIf="activeTab === 'secondaryMarket'" class="tab-content">
     <div class="card-grid">
-      <div class="token-card token-card--buyable" *ngFor="let t of secondaryMarketTokens"
+      <div class="token-card token-card--buyable" *ngFor="let t of visibleSecondaryTokens"
            (click)="openDetail(t, 'secondaryMarket')">
         <div class="token-card__image">
           <img *ngIf="pictogramSrc(t)" [src]="pictogramSrc(t)" [alt]="t.productName" />
@@ -183,7 +183,7 @@
         </div>
       </div>
     </div>
-    <p class="empty-msg" *ngIf="!loading && secondaryMarketTokens.length === 0">No tokens available.</p>
+    <p class="empty-msg" *ngIf="!loading && visibleSecondaryTokens.length === 0">No tokens available.</p>
   </section>
 </main>
 
@@ -249,8 +249,10 @@
 
         <!-- Primary Market actions -->
         <ng-container *ngIf="detailTab === 'primaryMarket'">
-          <button class="tc-btn tc-btn--green" (click)="buyPrimary(detailToken)">Buy Now</button>
+          <button class="tc-btn tc-btn--green" (click)="buyPrimary(detailToken)"
+            [disabled]="cartService.has(detailToken.id)">Buy Now</button>
           <button class="tc-btn tc-btn--outline" [class.tc-btn--in-cart]="cartService.has(detailToken.id)"
+            [disabled]="cartService.has(detailToken.id)"
             (click)="addToCart(detailToken)">
             {{ cartService.has(detailToken.id) ? '✓ In Cart' : '🛒 Add to Cart' }}
           </button>
@@ -258,8 +260,10 @@
 
         <!-- Secondary Market actions -->
         <ng-container *ngIf="detailTab === 'secondaryMarket'">
-          <button class="tc-btn tc-btn--green" (click)="buySecondary(detailToken)">Buy Now</button>
+          <button class="tc-btn tc-btn--green" (click)="buySecondary(detailToken)"
+            [disabled]="cartService.has(detailToken.id)">Buy Now</button>
           <button class="tc-btn tc-btn--outline" [class.tc-btn--in-cart]="cartService.has(detailToken.id)"
+            [disabled]="cartService.has(detailToken.id)"
             (click)="addToCart(detailToken)">
             {{ cartService.has(detailToken.id) ? '✓ In Cart' : '🛒 Add to Cart' }}
           </button>

@@ -26,6 +26,7 @@ export type MarketplaceTab = 'yourTokens' | 'primaryMarket' | 'secondaryMarket';
 export class InvestorMarketplaceComponent implements OnInit {
   activeTab: MarketplaceTab = 'yourTokens';
   investorPublicKey = '';
+  investorName = '';
   companies: Company[] = [];
 
   marketCompanyId = -1;
@@ -60,6 +61,7 @@ export class InvestorMarketplaceComponent implements OnInit {
     const investor = this.investorState.investor;
     if (!investor) { this.router.navigate(['/login']); return; }
     this.investorPublicKey = investor.publicKey;
+    this.investorName = investor.userName;
     this.loadCompanies();
 
     // Check query params — e.g. from home page click after login
@@ -147,8 +149,11 @@ export class InvestorMarketplaceComponent implements OnInit {
   closeDetail() { this.detailToken = null; }
 
   addToCart(token: ServiceTokenDto) {
-    this.cartService.add(token, this.detailTab === 'primaryMarket' ? 'primaryMarket' : 'secondaryMarket');
-    this.toast.success(`"${token.productName}" added to cart.`);
+    const market = this.detailTab === 'primaryMarket' ? 'primaryMarket' : 'secondaryMarket';
+    this.cartService.add(token, market).subscribe({
+      next: () => this.toast.success(`"${token.productName}" added to cart.`),
+      error: err => this.toast.error(err?.error?.message ?? err?.error ?? 'Failed to add token to cart.')
+    });
   }
 
   // ── Cart ──────────────────────────────────────────────────
@@ -239,6 +244,15 @@ export class InvestorMarketplaceComponent implements OnInit {
       },
       error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
+  }
+
+  // ── Filtered token lists (exclude items already in cart) ──
+  get visiblePrimaryTokens(): ServiceTokenDto[] {
+    return this.primaryMarketTokens.filter(t => !this.cartService.has(t.id));
+  }
+
+  get visibleSecondaryTokens(): ServiceTokenDto[] {
+    return this.secondaryMarketTokens.filter(t => !this.cartService.has(t.id));
   }
 
   // ── Display helpers ────────────────────────────────────────
