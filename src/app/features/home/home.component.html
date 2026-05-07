@@ -1,3 +1,6 @@
+<!-- ═══════════════════════════ TEST MODE NOTICE ═══════════════════════════ -->
+<p class="test-mode-notice">This application is currently running in test mode. Data is not real and no actual transactions will be processed.</p>
+
 <!-- ═══════════════════════════ NAVBAR ═══════════════════════════ -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="navbar__inner">
@@ -19,14 +22,7 @@
   </div>
 </nav>
 
-<!-- ═══════════════════════════ TEST MODE BANNER ═══════════════════════════ -->
-<div class="test-mode-banner" role="alert" aria-live="polite">
-  <span class="test-mode-banner__icon" aria-hidden="true">🧪</span>
-  <div class="test-mode-banner__text">
-    <strong>Testing Environment</strong>
-    <span>This application is currently running in <strong>test mode</strong>. Data is not real and no actual transactions will be processed.</span>
-  </div>
-</div>
+
 
 <main>
   <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
@@ -52,12 +48,12 @@
           <div class="token-arrow">→</div>
           <div class="token token--2">
             <span class="token__icon">◈</span>
-            <span class="token__label">Hold</span>
+            <span class="token__label">Use</span>
           </div>
           <div class="token-arrow">→</div>
           <div class="token token--3">
             <span class="token__icon">✓</span>
-            <span class="token__label">Redeem</span>
+            <span class="token__label">ReSell</span>
           </div>
         </div>
       </div>
@@ -67,7 +63,7 @@
   <!-- ═══════════════════════════ FEATURED TOKENS ═══════════════════════════ -->
   <section class="featured-tokens" id="featured-tokens" aria-labelledby="ft-heading">
     <div class="section-inner">
-      <h2 class="section-title" id="ft-heading">Available Service Tokens</h2>
+      <h2 class="section-title" id="ft-heading">Top Services to buy</h2>
       <p class="section-subtitle">Browse tokens currently available on the primary market. Click any card to get started.</p>
 
       <div *ngIf="featuredLoading" class="featured-tokens__loading">Loading tokens…</div>

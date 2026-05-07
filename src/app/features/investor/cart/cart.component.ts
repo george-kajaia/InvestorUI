@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CartService, CartItem } from '../../../core/services/cart.service';
@@ -6,7 +6,7 @@ import { ServiceTokenApiService } from '../../../core/api/service-token-api.serv
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { ServiceTokenDto } from '../../../shared/models/service-token.model';
 import { of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 
 export type ItemStatus = 'pending' | 'processing' | 'success' | 'error';
 
@@ -23,7 +23,7 @@ export interface CheckoutItemState {
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss']
 })
-export class CartComponent {
+export class CartComponent implements OnInit {
   checkoutStarted = false;
   checkoutDone = false;
   checkoutLoading = false;
@@ -35,6 +35,15 @@ export class CartComponent {
     private investorState: InvestorStateService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    const investor = this.investorState.investor;
+    if (!investor) { this.router.navigate(['/login']); return; }
+    // Restore cart from server in case user navigated here directly
+    this.cartService.load(investor.publicKey).subscribe({
+      error: err => console.error('Failed to load cart:', err)
+    });
+  }
 
   goBack() { this.router.navigate(['/marketplace']); }
 
@@ -75,13 +84,13 @@ export class CartComponent {
     const state = this.checkoutStates[index];
     state.status = 'processing';
 
-    // Fetch the latest token data first to get the current rowVersion, then purchase
-    this.serviceTokenApi.getServiceToken(state.item.token.id).pipe(
-      switchMap(freshToken => {
-        return state.item.market === 'secondaryMarket'
-          ? this.serviceTokenApi.buySecondaryServiceToken(freshToken.id, freshToken.rowVersion, publicKey)
-          : this.serviceTokenApi.buyPrimaryServiceToken(freshToken.id, freshToken.rowVersion, publicKey);
-      }),
+    // Use the token already in the cart (rowVersion was updated when added to cart)
+    const token = state.item.token;
+    // OwnerType === 0 means the token belongs to the company (primary); otherwise investor (secondary)
+    (token.ownerType === 0
+      ? this.serviceTokenApi.buyPrimaryServiceToken(token.id, token.rowVersion, publicKey)
+      : this.serviceTokenApi.buySecondaryServiceToken(token.id, token.rowVersion, publicKey)
+    ).pipe(
       catchError(err => {
         state.status = 'error';
         const msg = err?.error;

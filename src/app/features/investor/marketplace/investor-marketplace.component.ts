@@ -63,6 +63,10 @@ export class InvestorMarketplaceComponent implements OnInit {
     this.investorPublicKey = investor.publicKey;
     this.investorName = investor.userName;
     this.loadCompanies();
+    // Restore cart from server so it survives page refreshes
+    this.cartService.load(this.investorPublicKey).subscribe({
+      error: err => console.error('Failed to load cart:', err)
+    });
 
     // Check query params — e.g. from home page click after login
     this.route.queryParams.subscribe(params => {
@@ -150,7 +154,7 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   addToCart(token: ServiceTokenDto) {
     const market = this.detailTab === 'primaryMarket' ? 'primaryMarket' : 'secondaryMarket';
-    this.cartService.add(token, market).subscribe({
+    this.cartService.add(token, market, this.investorPublicKey).subscribe({
       next: () => this.toast.success(`"${token.productName}" added to cart.`),
       error: err => this.toast.error(err?.error?.message ?? err?.error ?? 'Failed to add token to cart.')
     });
@@ -258,8 +262,10 @@ export class InvestorMarketplaceComponent implements OnInit {
   // ── Display helpers ────────────────────────────────────────
   statusClass(status: number): string {
     switch (status) {
+      case ServiceTokenStatus.None:      return 'badge--gray';
       case ServiceTokenStatus.Available: return 'badge--green';
-      case ServiceTokenStatus.Sold:      return 'badge--gray';
+      case ServiceTokenStatus.Sold:      return 'badge--blue';
+      case ServiceTokenStatus.InCart:    return 'badge--yellow';
       case ServiceTokenStatus.Finished:  return 'badge--gray';
       default:                           return 'badge--gray';
     }
@@ -267,8 +273,10 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   tokenStatusLabel(status: number): string {
     switch (status) {
+      case ServiceTokenStatus.None:      return 'None';
       case ServiceTokenStatus.Available: return 'Available';
       case ServiceTokenStatus.Sold:      return 'Sold';
+      case ServiceTokenStatus.InCart:    return 'In Cart';
       case ServiceTokenStatus.Finished:  return 'Finished';
       default: return `Status ${status}`;
     }

@@ -91,11 +91,11 @@
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
           <div class="token-card__actions" (click)="$event.stopPropagation()">
-            <button *ngIf="+t.status === 1" class="tc-btn tc-btn--sm tc-btn--green"
+            <button *ngIf="+t.status === 2" class="tc-btn tc-btn--sm tc-btn--green"
               (click)="openGetService(t)">Get Service</button>
-            <button *ngIf="+t.status === 1" class="tc-btn tc-btn--sm tc-btn--outline"
+            <button *ngIf="+t.status === 2" class="tc-btn tc-btn--sm tc-btn--outline"
               (click)="markForResell(t)">Resell</button>
-            <button *ngIf="+t.status === 0" class="tc-btn tc-btn--sm tc-btn--warn"
+            <button *ngIf="+t.status === 1" class="tc-btn tc-btn--sm tc-btn--warn"
               (click)="cancelReselling(t)">Cancel Resell</button>
           </div>
         </div>
@@ -242,9 +242,9 @@
       <div class="modal__actions">
         <!-- My Tokens actions -->
         <ng-container *ngIf="detailTab === 'yourTokens'">
-          <button *ngIf="+detailToken.status === 1" class="tc-btn tc-btn--green" (click)="openGetService(detailToken); closeDetail()">Get Service</button>
-          <button *ngIf="+detailToken.status === 1" class="tc-btn tc-btn--outline" (click)="markForResell(detailToken); closeDetail()">Mark for Resell</button>
-          <button *ngIf="+detailToken.status === 0" class="tc-btn tc-btn--warn" (click)="cancelReselling(detailToken); closeDetail()">Cancel Reselling</button>
+          <button *ngIf="+detailToken.status === 2" class="tc-btn tc-btn--green" (click)="openGetService(detailToken); closeDetail()">Get Service</button>
+          <button *ngIf="+detailToken.status === 2" class="tc-btn tc-btn--outline" (click)="markForResell(detailToken); closeDetail()">Mark for Resell</button>
+          <button *ngIf="+detailToken.status === 1" class="tc-btn tc-btn--warn" (click)="cancelReselling(detailToken); closeDetail()">Cancel Reselling</button>
         </ng-container>
 
         <!-- Primary Market actions -->

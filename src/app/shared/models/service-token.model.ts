@@ -1,9 +1,11 @@
 import { ScheduleType } from './product.model';
 
 export enum ServiceTokenStatus {
-  Available = 0,
-  Sold = 1,
-  Finished = 255
+  None      = 0,
+  Available = 1,
+  Sold      = 2,
+  InCart    = 3,
+  Finished  = 255
 }
 
 export enum OwnerType {
