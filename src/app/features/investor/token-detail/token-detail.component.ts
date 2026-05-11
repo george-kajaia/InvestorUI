@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { InvestorStateService } from '../../../core/state/investor-state.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { ServiceTokenDto, ServiceTokenStatus } from '../../../shared/models/service-token.model';
 import { ScheduleType } from '../../../shared/models/product.model';
 import { MarketplaceTab } from '../marketplace/investor-marketplace.component';
@@ -23,8 +25,23 @@ export class TokenDetailComponent implements OnInit {
   showGetService = false;
 
   private toast = inject(ToastService);
+  private investorState = inject(InvestorStateService);
+  private dialog = inject(DialogService);
 
   constructor(private router: Router, private serviceTokenApi: ServiceTokenApiService) {}
+
+  async logout() {
+    const confirmed = await this.dialog.confirm({
+      title: 'Log Out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+    this.investorState.investor = null;
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
 
   ngOnInit(): void {
     const nav = this.router.getCurrentNavigation() ?? history.state;

@@ -10,6 +10,7 @@
       <span *ngIf="!checkoutLoading">Checkout</span>
       <span *ngIf="checkoutLoading" class="spinner">⟳</span>
     </button>
+    <button class="logout-btn" (click)="logout()" title="Log out">⏻ Log Out</button>
   </header>
 
   <!-- ── Checkout result summary ─────────────────────────── -->

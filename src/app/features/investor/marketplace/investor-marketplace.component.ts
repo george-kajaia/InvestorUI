@@ -8,6 +8,7 @@ import { CompanyApiService } from '../../../core/api/company-api.service';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
 import { CartService, CartMarket } from '../../../core/services/cart.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { DialogService } from '../../../core/services/dialog.service';
 
 import { Company } from '../../../shared/models/company.model';
 import { ScheduleType } from '../../../shared/models/product.model';
@@ -15,6 +16,9 @@ import { ServiceTokenDto, ServiceTokenStatus } from '../../../shared/models/serv
 import { GetServiceComponent, ServiceResult } from '../get-service/get-service.component';
 
 export type MarketplaceTab = 'yourTokens' | 'primaryMarket' | 'secondaryMarket';
+
+const TAB_KEY     = 'marketplace_active_tab';
+const FILTERS_KEY = 'marketplace_filters';
 
 @Component({
   selector: 'app-investor-marketplace',
@@ -47,6 +51,7 @@ export class InvestorMarketplaceComponent implements OnInit {
   getServiceToken: ServiceTokenDto | null = null;
 
   private toast = inject(ToastService);
+  private dialog = inject(DialogService);
 
   constructor(
     private router: Router,
@@ -75,12 +80,20 @@ export class InvestorMarketplaceComponent implements OnInit {
 
       if (tab === 'primaryMarket') {
         this.activeTab = 'primaryMarket';
+        sessionStorage.setItem(TAB_KEY, 'primaryMarket');
         this.loadPrimaryMarket(false, openToken);
       } else if (tab === 'secondaryMarket') {
         this.activeTab = 'secondaryMarket';
+        sessionStorage.setItem(TAB_KEY, 'secondaryMarket');
         this.loadSecondaryMarket();
       } else {
-        this.loadYourTokens();
+        // No query param — restore the tab the investor was on before F5
+        const saved = sessionStorage.getItem(TAB_KEY) as MarketplaceTab | null;
+        const restored: MarketplaceTab = (saved === 'primaryMarket' || saved === 'secondaryMarket') ? saved : 'yourTokens';
+        this.activeTab = restored;
+        if (restored === 'primaryMarket') this.loadPrimaryMarket();
+        else if (restored === 'secondaryMarket') this.loadSecondaryMarket();
+        else this.loadYourTokens();
       }
     });
 
@@ -90,6 +103,7 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   setTab(tab: MarketplaceTab) {
     this.activeTab = tab;
+    sessionStorage.setItem(TAB_KEY, tab);
     if (tab === 'yourTokens') this.loadYourTokens();
     else if (tab === 'primaryMarket') this.loadPrimaryMarket();
     else this.loadSecondaryMarket();
@@ -162,6 +176,22 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   // ── Cart ──────────────────────────────────────────────────
   openCart() { this.router.navigate(['/cart']); }
+
+  // ── Logout ────────────────────────────────────────────────
+  async logout() {
+    const confirmed = await this.dialog.confirm({
+      title: 'Log Out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+    this.investorState.investor = null;
+    this.cartService.clear();
+    sessionStorage.removeItem(TAB_KEY);
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
 
   // ── Get Service QR overlay ─────────────────────────────────
   openGetService(t: ServiceTokenDto) { this.getServiceToken = t; }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CartService, CartItem } from '../../../core/services/cart.service';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
 import { InvestorStateService } from '../../../core/state/investor-state.service';
+import { DialogService } from '../../../core/services/dialog.service';
 import { ServiceTokenDto } from '../../../shared/models/service-token.model';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -33,7 +34,8 @@ export class CartComponent implements OnInit {
     public cartService: CartService,
     private serviceTokenApi: ServiceTokenApiService,
     private investorState: InvestorStateService,
-    private router: Router
+    private router: Router,
+    private dialog: DialogService
   ) {}
 
   ngOnInit(): void {
@@ -46,6 +48,20 @@ export class CartComponent implements OnInit {
   }
 
   goBack() { this.router.navigate(['/marketplace']); }
+
+  async logout() {
+    const confirmed = await this.dialog.confirm({
+      title: 'Log Out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    if (!confirmed) return;
+    this.investorState.investor = null;
+    this.cartService.clear();
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
 
   checkout() {
     const investor = this.investorState.investor;

@@ -381,6 +381,33 @@ $app-bar-h:    56px;
   }
 }
 
+// ── Logout button ──────────────────────────────────────────
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: background $transition-base, transform $transition-base;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  white-space: nowrap;
+
+  &:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
 .cart-badge-mobile {
   position: absolute;
   top: -4px; right: -4px;

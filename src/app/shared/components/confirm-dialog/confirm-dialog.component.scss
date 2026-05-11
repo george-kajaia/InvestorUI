@@ -71,6 +71,10 @@
     display: flex;
     gap: $space-3;
     justify-content: center;
+
+    .btn {
+      flex: 1;
+    }
   }
 }
 
@@ -92,9 +96,13 @@
   &--secondary {
     background: $neutral-100;
     color: $neutral-700;
+    border: 1.5px solid $neutral-400;
+    font-weight: $font-weight-semibold;
 
     &:hover {
       background: $neutral-200;
+      border-color: $neutral-500;
+      color: $neutral-900;
     }
 
     &:focus-visible {

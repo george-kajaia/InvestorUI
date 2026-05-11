@@ -6,10 +6,11 @@
       <span class="app-bar__title">Marketplace</span>
     </div>
     <div class="app-bar__meta">
-      <span class="app-bar__key" title="{{ investorPublicKey }}">{{ investorName }}</span>
       <button class="app-bar__refresh" (click)="refreshCurrentTab()" [disabled]="loading" aria-label="Refresh">
         <span [class.spinning]="loading">↻</span>
       </button>
+      <span class="app-bar__key" title="{{ investorPublicKey }}">{{ investorName }}</span>
+      <button class="logout-btn" (click)="logout()" title="Log out">⏻ Log Out</button>
     </div>
   </div>
 

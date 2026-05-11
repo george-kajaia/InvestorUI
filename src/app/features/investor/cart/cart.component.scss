@@ -68,6 +68,33 @@ $text-muted:   #6b7280;
   }
 }
 
+// ── Logout button ──────────────────────────────────────────
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: $radius-full;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  white-space: nowrap;
+
+  &:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
+  }
+
+  &:active { transform: translateY(0); }
+}
+
 // ── Checkout message ────────────────────────────────────
 .checkout-msg {
   margin: 20px 24px 0;
