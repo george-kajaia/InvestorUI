@@ -11,7 +11,7 @@ export class ServiceTokenApiService {
 
   constructor(private http: HttpClient) {}
 
-  getServiceToken(serviceTokenId: string): Observable<ServiceTokenDto> {
+  getService(serviceTokenId: string): Observable<ServiceTokenDto> {
     return this.http.get<ServiceTokenDto>(`${this.baseUrl}/GetServiceToken`, {
       params: { serviceTokenId }
     });
@@ -63,7 +63,7 @@ export class ServiceTokenApiService {
     });
   }
 
-  getService(serviceTokenId: string, rowVersion: number, connectionId: string): Observable<void> {
+  redeemService(serviceTokenId: string, rowVersion: number, connectionId: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/GetService`, null, {
       params: { serviceTokenId, rowVersion: rowVersion.toString(), connectionId }
     });

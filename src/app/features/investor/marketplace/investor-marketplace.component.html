@@ -38,14 +38,24 @@
   <div class="filter-bar">
     <label class="filter-bar__field">
       <span class="filter-bar__label">Company</span>
-      <select [(ngModel)]="marketCompanyId" class="filter-bar__input">
+      <select [(ngModel)]="marketCompanyId" class="filter-bar__input" (ngModelChange)="onCompanyChange()">
         <option [ngValue]="-1">All companies</option>
         <option *ngFor="let c of companies" [ngValue]="c.id">{{ c.name }}</option>
       </select>
     </label>
     <label class="filter-bar__field">
-      <span class="filter-bar__label">Request ID</span>
-      <input type="number" [(ngModel)]="marketRequestId" min="-1" placeholder="Any" class="filter-bar__input">
+      <span class="filter-bar__label">Product</span>
+      <select [(ngModel)]="marketProductId" class="filter-bar__input" (ngModelChange)="onProductChange()">
+        <option [ngValue]="-1">All products</option>
+        <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }}</option>
+      </select>
+    </label>
+    <label class="filter-bar__field">
+      <span class="filter-bar__label">Request</span>
+      <select [(ngModel)]="marketRequestId" class="filter-bar__input" [disabled]="!isRequestFilterEnabled">
+        <option [ngValue]="-1">All requests</option>
+        <option *ngFor="let r of requests" [ngValue]="r.id">{{ r.id }} — {{ r.productName }}</option>
+      </select>
     </label>
     <button class="filter-bar__btn filter-bar__btn--primary" (click)="applyFilters()">Apply</button>
     <button class="filter-bar__btn" (click)="refreshFilters()">Reset</button>

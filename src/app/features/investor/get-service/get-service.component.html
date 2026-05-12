@@ -18,7 +18,10 @@
     <div *ngIf="!connecting && error" class="qr-modal__state qr-modal__state--error">
       <span class="qr-modal__state-icon">⚠</span>
       <p>{{ error }}</p>
-      <button class="qr-btn qr-btn--ghost" (click)="close()">Close</button>
+      <div class="qr-modal__state-actions">
+        <button class="qr-btn qr-btn--primary" (click)="retry()">Try Again</button>
+        <button class="qr-btn qr-btn--ghost" (click)="close()">Close</button>
+      </div>
     </div>
 
     <!-- QR Code -->
@@ -27,6 +30,20 @@
         <span class="qr-modal__company">{{ token.companyName }}</span>
         <span class="qr-modal__product">{{ token.productName }}</span>
         <span class="qr-modal__count">Uses remaining: <strong>{{ token.count }}</strong></span>
+        <div class="qr-modal__meta">
+          <span class="qr-modal__meta-row">
+            <span class="qr-modal__meta-label">Token ID</span>
+            <span class="qr-modal__meta-value">{{ token.id }}</span>
+          </span>
+          <span class="qr-modal__meta-row">
+            <span class="qr-modal__meta-label">Row Version</span>
+            <span class="qr-modal__meta-value">{{ token.rowVersion }}</span>
+          </span>
+          <span class="qr-modal__meta-row">
+            <span class="qr-modal__meta-label">Connection ID</span>
+            <span class="qr-modal__meta-value">{{ connectionId }}</span>
+          </span>
+        </div>
       </div>
 
       <div class="qr-modal__qr-wrap">

@@ -98,6 +98,13 @@ $app-bar-h:    56px;
     font-size: $font-size-sm; color: $text;
     background: $surface; min-width: 160px;
     &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.1); }
+    &:disabled {
+      background: #f0f0f0;
+      color: $text-muted;
+      border-color: #ddd;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
   }
 
   &__btn {

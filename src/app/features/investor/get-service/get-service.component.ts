@@ -32,6 +32,14 @@ export class GetServiceComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
 
   async ngOnInit(): Promise<void> {
+    await this.initConnection();
+  }
+
+  async initConnection(): Promise<void> {
+    this.connecting = true;
+    this.error = '';
+    this.qrDataUrl = '';
+
     try {
       // 1. Open SignalR connection and get connectionId
       this.connectionId = await this.signalR.connect();
@@ -56,10 +64,20 @@ export class GetServiceComponent implements OnInit, OnDestroy {
       });
 
       this.connecting = false;
-    } catch (err) {
-      this.error = 'Failed to connect. Please try again.';
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      if (msg.toLowerCase().includes('negotiat') || msg.toLowerCase().includes('network') || msg.toLowerCase().includes('fetch')) {
+        this.error = 'Could not reach the server. Check your connection and try again.';
+      } else {
+        this.error = 'Failed to connect. Please try again.';
+      }
       this.connecting = false;
     }
+  }
+
+  async retry(): Promise<void> {
+    this.signalR.off('ServiceResult');
+    await this.initConnection();
   }
 
   async ngOnDestroy(): Promise<void> {

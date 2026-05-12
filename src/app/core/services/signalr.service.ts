@@ -11,6 +11,12 @@ export class SignalRService {
   }
 
   async connect(): Promise<string> {
+    // Disconnect any existing hub before creating a new connection
+    if (this.hub) {
+      try { await this.hub.stop(); } catch { /* ignore */ }
+      this.hub = null;
+    }
+
     this.hub = new signalR.HubConnectionBuilder()
       .withUrl(`${environment.signalRHubUrl}`)
       .withAutomaticReconnect()

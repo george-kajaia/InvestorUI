@@ -5,13 +5,16 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { CompanyApiService } from '../../../core/api/company-api.service';
+import { ProductApiService } from '../../../core/api/product-api.service';
+import { RequestApiService } from '../../../core/api/request-api.service';
 import { ServiceTokenApiService } from '../../../core/api/service-token-api.service';
 import { CartService, CartMarket } from '../../../core/services/cart.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { DialogService } from '../../../core/services/dialog.service';
 
 import { Company } from '../../../shared/models/company.model';
-import { ScheduleType } from '../../../shared/models/product.model';
+import { Product, ScheduleType } from '../../../shared/models/product.model';
+import { Request } from '../../../shared/models/request.model';
 import { ServiceTokenDto, ServiceTokenStatus } from '../../../shared/models/service-token.model';
 import { GetServiceComponent, ServiceResult } from '../get-service/get-service.component';
 
@@ -24,6 +27,7 @@ const FILTERS_KEY = 'marketplace_filters';
   selector: 'app-investor-marketplace',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, GetServiceComponent],
+
   templateUrl: './investor-marketplace.component.html',
   styleUrls: ['./investor-marketplace.component.scss']
 })
@@ -34,7 +38,14 @@ export class InvestorMarketplaceComponent implements OnInit {
   companies: Company[] = [];
 
   marketCompanyId = -1;
+  marketProductId = -1;
   marketRequestId = -1;
+
+  products: Product[] = [];
+  allProducts: Product[] = [];
+
+  requests: Request[] = [];
+  allRequests: Request[] = [];
 
   yourTokens: ServiceTokenDto[] = [];
   filteredYourTokens: ServiceTokenDto[] = [];
@@ -58,6 +69,8 @@ export class InvestorMarketplaceComponent implements OnInit {
     private route: ActivatedRoute,
     private investorState: InvestorStateService,
     private companyApi: CompanyApiService,
+    private productApi: ProductApiService,
+    private requestApi: RequestApiService,
     private serviceTokenApi: ServiceTokenApiService,
     public cartService: CartService
   ) {}
@@ -68,6 +81,8 @@ export class InvestorMarketplaceComponent implements OnInit {
     this.investorPublicKey = investor.publicKey;
     this.investorName = investor.userName;
     this.loadCompanies();
+    this.loadProducts();
+    this.loadRequests();
     // Restore cart from server so it survives page refreshes
     this.cartService.load(this.investorPublicKey).subscribe({
       error: err => console.error('Failed to load cart:', err)
@@ -116,6 +131,59 @@ export class InvestorMarketplaceComponent implements OnInit {
     });
   }
 
+  loadProducts() {
+    this.productApi.getAll(0, 500, null).subscribe({
+      next: list => {
+        this.allProducts = list ?? [];
+        this.filterProductsByCompany();
+      },
+      error: err => console.error(err)
+    });
+  }
+
+  onCompanyChange() {
+    this.marketProductId = -1;
+    this.marketRequestId = -1;
+    this.filterProductsByCompany();
+    this.requests = [];
+  }
+
+  onProductChange() {
+    this.marketRequestId = -1;
+    this.filterRequestsByProduct();
+  }
+
+  private filterProductsByCompany() {
+    const cId = Number(this.marketCompanyId);
+    if (cId === -1) {
+      this.products = [...this.allProducts];
+    } else {
+      this.products = this.allProducts.filter(p => Number(p.companyId) === cId);
+    }
+  }
+
+  loadRequests() {
+    this.requestApi.getAll(-1, 0).subscribe({
+      next: list => {
+        this.allRequests = list ?? [];
+      },
+      error: err => console.error(err)
+    });
+  }
+
+  private filterRequestsByProduct() {
+    const pId = Number(this.marketProductId);
+    if (pId === -1) {
+      this.requests = [];
+    } else {
+      this.requests = this.allRequests.filter(r => Number(r.productId) === pId);
+    }
+  }
+
+  get isRequestFilterEnabled(): boolean {
+    return Number(this.marketProductId) !== -1;
+  }
+
   loadYourTokens(silent = false) {
     this.loading = true;
     this.serviceTokenApi.getInvestorServiceTokens(this.investorPublicKey).subscribe({
@@ -139,7 +207,10 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   refreshFilters() {
     this.marketCompanyId = -1;
+    this.marketProductId = -1;
     this.marketRequestId = -1;
+    this.filterProductsByCompany();
+    this.requests = [];
     this.refreshCurrentTab();
   }
 
@@ -152,8 +223,10 @@ export class InvestorMarketplaceComponent implements OnInit {
   private applyLocalYourTokensFilters() {
     let result = [...(this.yourTokens ?? [])];
     const cId = Number(this.marketCompanyId);
+    const pId = Number(this.marketProductId);
     const rId = Number(this.marketRequestId);
     if (!isNaN(cId) && cId !== -1) result = result.filter(t => Number(t.companyId) === cId);
+    if (!isNaN(pId) && pId !== -1) result = result.filter(t => Number(t.productId) === pId);
     if (!isNaN(rId) && rId !== -1) result = result.filter(t => Number(t.requestId) === rId);
     this.filteredYourTokens = result;
   }
@@ -282,11 +355,17 @@ export class InvestorMarketplaceComponent implements OnInit {
 
   // ── Filtered token lists (exclude items already in cart) ──
   get visiblePrimaryTokens(): ServiceTokenDto[] {
-    return this.primaryMarketTokens.filter(t => !this.cartService.has(t.id));
+    let tokens = this.primaryMarketTokens.filter(t => !this.cartService.has(t.id));
+    const pId = Number(this.marketProductId);
+    if (!isNaN(pId) && pId !== -1) tokens = tokens.filter(t => Number(t.productId) === pId);
+    return tokens;
   }
 
   get visibleSecondaryTokens(): ServiceTokenDto[] {
-    return this.secondaryMarketTokens.filter(t => !this.cartService.has(t.id));
+    let tokens = this.secondaryMarketTokens.filter(t => !this.cartService.has(t.id));
+    const pId = Number(this.marketProductId);
+    if (!isNaN(pId) && pId !== -1) tokens = tokens.filter(t => Number(t.productId) === pId);
+    return tokens;
   }
 
   // ── Display helpers ────────────────────────────────────────

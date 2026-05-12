@@ -94,6 +94,43 @@ $error:        #dc2626;
     strong { color: $primary; }
   }
 
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    width: 100%;
+    background: #f0fdf4;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  &__meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  &__meta-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-muted;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__meta-value {
+    font-size: 0.75rem;
+    font-family: 'Courier New', Courier, monospace;
+    color: $text;
+    word-break: break-all;
+    text-align: right;
+  }
+
   &__qr-wrap {
     background: $surface;
     border: 2px solid $border;
@@ -148,6 +185,13 @@ $error:        #dc2626;
     &-icon {
       font-size: 2rem;
     }
+
+    &-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
   }
 }
 
@@ -199,5 +243,13 @@ $error:        #dc2626;
     color: $text-muted;
 
     &:hover { background: $primary-bg; color: $text; border-color: $primary; }
+  }
+
+  &--primary {
+    background: $primary;
+    border: 1px solid $primary;
+    color: #fff;
+
+    &:hover { background: $primary-dark; border-color: $primary-dark; }
   }
 }
