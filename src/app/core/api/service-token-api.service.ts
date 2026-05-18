@@ -72,7 +72,7 @@ export class ServiceTokenApiService {
   getInvestorServiceTokensInCart(investorPublicKey: string): Observable<ServiceTokenDto[]> {
     return this.http.get<ServiceTokenDto[]>(`${this.baseUrl}/GetInvestorServiceTokensInCart`, {
       params: { investorPublicKey }
-    });
+    }); 
   }
 
   markServiceTokenInCart(serviceTokenId: string, rowVersion: number, investorPublicKey: string): Observable<ServiceTokenDto> {
@@ -100,7 +100,7 @@ export class ServiceTokenApiService {
       startDate:      raw.startDate      ?? raw.StartDate,
       endDate:        raw.endDate        ?? raw.EndDate,
       status:         raw.status         ?? raw.Status,
-      count:          raw.count          ?? raw.Count,
+      remainingCount: raw.remainingCount ?? raw.RemainingCount,
       serviceCount:   raw.serviceCount   ?? raw.ServiceCount,
       scheduleType:   raw.scheduleType   ?? raw.ScheduleType,
       ownerType:      raw.ownerType      ?? raw.OwnerType,

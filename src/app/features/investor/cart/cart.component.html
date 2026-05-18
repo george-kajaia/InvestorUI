@@ -53,11 +53,11 @@
         </div>
         <div class="cart-card__stats">
           <div class="cart-card__stat">
-            <span class="cart-card__stat-label">Count</span>
-            <span class="cart-card__stat-value">{{ s.item.token.count }}</span>
+            <span class="cart-card__stat-label">Remaining service count</span>
+            <span class="cart-card__stat-value">{{ s.item.token.remainingCount }}</span>
           </div>
           <div class="cart-card__stat">
-            <span class="cart-card__stat-label">Services</span>
+            <span class="cart-card__stat-label">Total service count</span>
             <span class="cart-card__stat-value">{{ s.item.token.serviceCount }}</span>
           </div>
           <div class="cart-card__stat" *ngIf="s.item.token.price">
@@ -92,11 +92,11 @@
         </div>
         <div class="cart-card__stats">
           <div class="cart-card__stat">
-            <span class="cart-card__stat-label">Count</span>
-            <span class="cart-card__stat-value">{{ i.token.count }}</span>
+            <span class="cart-card__stat-label">Remaining service count</span>
+            <span class="cart-card__stat-value">{{ i.token.remainingCount }}</span>
           </div>
           <div class="cart-card__stat">
-            <span class="cart-card__stat-label">Services</span>
+            <span class="cart-card__stat-label">Total service count</span>
             <span class="cart-card__stat-value">{{ i.token.serviceCount }}</span>
           </div>
           <div class="cart-card__stat">

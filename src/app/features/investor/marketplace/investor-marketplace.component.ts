@@ -394,12 +394,13 @@ export class InvestorMarketplaceComponent implements OnInit {
   scheduleTypeLabel(st: ScheduleType): string {
     if (!st) return '—';
     const base = this.schedulePeriodLabel(st.periodType);
+    if (st.periodType === 0) return base;
     return st.periodNumber > 0 ? `${base} / ${st.periodNumber}` : base;
   }
 
   private schedulePeriodLabel(v: number): string {
     switch (v) {
-      case 0: return 'None';  case 1: return 'Daily';
+      case 0: return 'Free use';  case 1: return 'Daily';
       case 2: return 'Weekly'; case 3: return 'Monthly';
       case 4: return 'Yearly'; default: return `Period ${v}`;
     }

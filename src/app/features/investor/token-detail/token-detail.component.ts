@@ -101,8 +101,8 @@ export class TokenDetailComponent implements OnInit {
 
     if (result.success) {
       this.toast.success('Service granted successfully!');
-      if (this.token && result.count !== undefined && result.rowVersion !== undefined) {
-        this.token = { ...this.token, count: result.count, rowVersion: result.rowVersion };
+      if (this.token && result.remainingCount !== undefined && result.rowVersion !== undefined) {
+        this.token = { ...this.token, remainingCount: result.remainingCount, rowVersion: result.rowVersion };
       }
     } else {
       this.toast.error(result.message ?? 'Service request failed.');
@@ -136,8 +136,9 @@ export class TokenDetailComponent implements OnInit {
 
   scheduleLabel(st: ScheduleType): string {
     if (!st) return '—';
-    const labels: Record<number, string> = { 0:'None', 1:'Daily', 2:'Weekly', 3:'Monthly', 4:'Yearly' };
+    const labels: Record<number, string> = { 0:'Free use', 1:'Daily', 2:'Weekly', 3:'Monthly', 4:'Yearly' };
     const base = labels[st.periodType] ?? `Period ${st.periodType}`;
+    if (st.periodType === 0) return base;
     return st.periodNumber > 0 ? `${base} / ${st.periodNumber}` : base;
   }
 }

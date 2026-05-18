@@ -83,20 +83,22 @@
         <div class="token-card__product">{{ t.productName }}</div>
         <div class="token-card__body">
           <div class="token-card__stat">
-            <span class="token-card__stat-label">Count</span>
-            <span class="token-card__stat-value">{{ t.count }}</span>
+            <span class="token-card__stat-label">Remaining service count</span>
+            <span class="token-card__stat-value">{{ t.remainingCount }}</span>
           </div>
           <div class="token-card__stat">
-            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-label">Total service count</span>
             <span class="token-card__stat-value">{{ t.serviceCount }}</span>
           </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">Start</span>
-            <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
-          </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">End</span>
-            <span class="token-card__stat-value">{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</span>
+          <div class="token-card__stat-row">
+            <div class="token-card__stat">
+              <span class="token-card__stat-label">Start date</span>
+              <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="token-card__stat">
+              <span class="token-card__stat-label">End date</span>
+              <span class="token-card__stat-value">{{ t.endDate ? (t.endDate | date:'mediumDate') : '—' }}</span>
+            </div>
           </div>
         </div>
         <div class="token-card__footer">
@@ -118,7 +120,7 @@
   <!-- ── Primary Market ───────────────────────────────────── -->
   <section *ngIf="activeTab === 'primaryMarket'" class="tab-content">
     <div class="card-grid">
-      <div class="token-card token-card--buyable" *ngFor="let t of visiblePrimaryTokens"
+      <div class="token-card token-card--buyable token-card--primary" *ngFor="let t of visiblePrimaryTokens"
            (click)="openDetail(t, 'primaryMarket')">
         <div class="token-card__image">
           <img *ngIf="pictogramSrc(t)" [src]="pictogramSrc(t)" [alt]="t.productName" />
@@ -131,25 +133,23 @@
         <div class="token-card__product">{{ t.productName }}</div>
         <div class="token-card__body">
           <div class="token-card__stat">
-            <span class="token-card__stat-label">Count</span>
-            <span class="token-card__stat-value">{{ t.count }}</span>
-          </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-label">Total service count</span>
             <span class="token-card__stat-value">{{ t.serviceCount }}</span>
-          </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">Schedule</span>
-            <span class="token-card__stat-value">{{ scheduleTypeLabel(t.scheduleType) }}</span>
-          </div>
-          <div class="token-card__stat" *ngIf="t.price">
-            <span class="token-card__stat-label">Price</span>
-            <span class="token-card__stat-value token-card__price">{{ t.price | currency }}</span>
           </div>
         </div>
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
-          <span class="token-card__chevron">View details →</span>
+          <div class="token-card__actions" (click)="$event.stopPropagation()">
+            <button class="tc-btn tc-btn--sm tc-btn--green"
+              [disabled]="cartService.has(t.id)"
+              (click)="buyPrimary(t)">Buy Now</button>
+            <button class="tc-btn tc-btn--sm tc-btn--outline"
+              [class.tc-btn--in-cart]="cartService.has(t.id)"
+              [disabled]="cartService.has(t.id)"
+              (click)="addToCart(t)">
+              {{ cartService.has(t.id) ? '✓ In Cart' : '🛒 Cart' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -172,25 +172,37 @@
         <div class="token-card__product">{{ t.productName }}</div>
         <div class="token-card__body">
           <div class="token-card__stat">
-            <span class="token-card__stat-label">Count</span>
-            <span class="token-card__stat-value">{{ t.count }}</span>
+            <span class="token-card__stat-label">Remaining service count</span>
+            <span class="token-card__stat-value">{{ t.remainingCount }}</span>
           </div>
           <div class="token-card__stat">
-            <span class="token-card__stat-label">Services</span>
+            <span class="token-card__stat-label">Total service count</span>
             <span class="token-card__stat-value">{{ t.serviceCount }}</span>
           </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">Schedule</span>
-            <span class="token-card__stat-value">{{ scheduleTypeLabel(t.scheduleType) }}</span>
-          </div>
-          <div class="token-card__stat">
-            <span class="token-card__stat-label">Seller</span>
-            <span class="token-card__stat-value token-card__mono">{{ t.ownerPublicKey | slice:0:10 }}…</span>
+          <div class="token-card__stat-row" *ngIf="t.startDate || t.endDate">
+            <div class="token-card__stat" *ngIf="t.startDate">
+              <span class="token-card__stat-label">Start date</span>
+              <span class="token-card__stat-value">{{ t.startDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="token-card__stat" *ngIf="t.endDate">
+              <span class="token-card__stat-label">End date</span>
+              <span class="token-card__stat-value">{{ t.endDate | date:'mediumDate' }}</span>
+            </div>
           </div>
         </div>
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
-          <span class="token-card__chevron">View details →</span>
+          <div class="token-card__actions" (click)="$event.stopPropagation()">
+            <button class="tc-btn tc-btn--sm tc-btn--green"
+              [disabled]="cartService.has(t.id)"
+              (click)="buySecondary(t)">Buy Now</button>
+            <button class="tc-btn tc-btn--sm tc-btn--outline"
+              [class.tc-btn--in-cart]="cartService.has(t.id)"
+              [disabled]="cartService.has(t.id)"
+              (click)="addToCart(t)">
+              {{ cartService.has(t.id) ? '✓ In Cart' : '🛒 Cart' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -241,11 +253,11 @@
       <dl class="modal__details">
         <div><dt>Token ID</dt><dd class="mono">{{ detailToken.id }}</dd></div>
         <div><dt>Status</dt><dd><span class="badge" [class]="statusClass(detailToken.status)">{{ tokenStatusLabel(detailToken.status) }}</span></dd></div>
-        <div><dt>Count</dt><dd>{{ detailToken.count }}</dd></div>
-        <div><dt>Services</dt><dd>{{ detailToken.serviceCount }}</dd></div>
-        <div><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
+        <div><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
+        <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
         <div><dt>Start Date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
-        <div *ngIf="detailToken.endDate"><dt>End Date</dt><dd>{{ detailToken.endDate | date:'mediumDate' }}</dd></div>
+        <div><dt>End Date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
+        <div><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
         <div *ngIf="detailToken.price"><dt>Price</dt><dd class="modal__price">{{ detailToken.price | currency }}</dd></div>
         <div *ngIf="detailTab === 'secondaryMarket'"><dt>Seller</dt><dd class="mono">{{ detailToken.ownerPublicKey }}</dd></div>
       </dl>

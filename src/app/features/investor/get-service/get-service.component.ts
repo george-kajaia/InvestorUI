@@ -8,7 +8,7 @@ import { ServiceTokenDto } from '../../../shared/models/service-token.model';
 export interface ServiceResult {
   success: boolean;
   message: string;
-  count?: number;
+  remainingCount?: number;
   rowVersion?: number;
 }
 

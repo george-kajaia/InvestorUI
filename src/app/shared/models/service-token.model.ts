@@ -22,7 +22,7 @@ export interface ServiceToken {
   startDate: string;
   endDate?: string | null;
   status: ServiceTokenStatus | number;
-  count: number;
+  remainingCount: number;
   serviceCount: number;
   scheduleType: ScheduleType;
   ownerType: OwnerType | number;

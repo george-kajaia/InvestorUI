@@ -135,8 +135,9 @@ export class CartComponent implements OnInit {
   scheduleLabel(token: ServiceTokenDto): string {
     const st = token.scheduleType;
     if (!st) return '—';
-    const labels: Record<number, string> = { 0: 'None', 1: 'Daily', 2: 'Weekly', 3: 'Monthly', 4: 'Yearly' };
+    const labels: Record<number, string> = { 0: 'Free use', 1: 'Daily', 2: 'Weekly', 3: 'Monthly', 4: 'Yearly' };
     const base = labels[st.periodType] ?? `Period ${st.periodType}`;
+    if (st.periodType === 0) return base;
     return st.periodNumber > 0 ? `${base} / ${st.periodNumber}` : base;
   }
 

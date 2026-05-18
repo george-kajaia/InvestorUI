@@ -50,7 +50,7 @@ export class CartService {
       startDate:      raw.startDate      ?? raw.StartDate,
       endDate:        raw.endDate        ?? raw.EndDate,
       status:         raw.status         ?? raw.Status,
-      count:          raw.count          ?? raw.Count,
+      remainingCount: raw.remainingCount ?? raw.RemainingCount,
       serviceCount:   raw.serviceCount   ?? raw.ServiceCount,
       scheduleType:   raw.scheduleType   ?? raw.ScheduleType,
       ownerType:      raw.ownerType      ?? raw.OwnerType,
