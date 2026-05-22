@@ -34,4 +34,5 @@ export interface ServiceTokenDto extends ServiceToken {
   productName: string;
   price: number;
   pictogram?: string | null; // base64-encoded image from API
+  term?: number | null;
 }

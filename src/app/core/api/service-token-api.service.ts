@@ -109,6 +109,7 @@ export class ServiceTokenApiService {
       productName:    raw.productName    ?? raw.ProductName,
       price:          raw.price          ?? raw.Price,
       pictogram:      raw.pictogram      ?? raw.Pictogram,
+      term:           raw.term           ?? raw.Term,
     };
   }
 }

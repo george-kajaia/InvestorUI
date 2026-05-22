@@ -136,6 +136,14 @@
             <span class="token-card__stat-label">Total service count</span>
             <span class="token-card__stat-value">{{ t.serviceCount }}</span>
           </div>
+          <div class="token-card__stat token-card__stat--full" *ngIf="t.term != null">
+            <span class="token-card__stat-label">Term</span>
+            <span class="token-card__stat-value">{{ t.term }} - Months</span>
+          </div>
+          <div class="token-card__stat token-card__stat--full">
+            <span class="token-card__stat-label">Schedule</span>
+            <span class="token-card__stat-value">{{ scheduleTypeLabel(t.scheduleType) }}</span>
+          </div>
         </div>
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
@@ -251,15 +259,17 @@
       <h2 class="modal__product">{{ detailToken.productName }}</h2>
 
       <dl class="modal__details">
-        <div><dt>Token ID</dt><dd class="mono">{{ detailToken.id }}</dd></div>
-        <div><dt>Status</dt><dd><span class="badge" [class]="statusClass(detailToken.status)">{{ tokenStatusLabel(detailToken.status) }}</span></dd></div>
-        <div><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Status</dt><dd><span class="badge" [class]="statusClass(detailToken.status)">{{ tokenStatusLabel(detailToken.status) }}</span></dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
         <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
-        <div><dt>Start Date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
-        <div><dt>End Date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
-        <div><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
-        <div *ngIf="detailToken.price"><dt>Price</dt><dd class="modal__price">{{ detailToken.price | currency }}</dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Start Date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket'"><dt>End Date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
+        <div class="full-span" *ngIf="detailTab === 'primaryMarket' && detailToken.term != null"><dt>Term</dt><dd>{{ detailToken.term }} - Months</dd></div>
+        <div class="full-span" *ngIf="detailTab === 'primaryMarket'"><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
+        <div *ngIf="detailTab !== 'primaryMarket' && detailToken.price"><dt>Price</dt><dd class="modal__price">{{ detailToken.price | currency }}</dd></div>
         <div *ngIf="detailTab === 'secondaryMarket'"><dt>Seller</dt><dd class="mono">{{ detailToken.ownerPublicKey }}</dd></div>
+        <div class="full-span"><dt>Token</dt><dd class="mono">{{ detailToken.id }}</dd></div>
       </dl>
 
       <div class="modal__actions">

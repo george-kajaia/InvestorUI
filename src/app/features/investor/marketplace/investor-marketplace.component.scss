@@ -504,6 +504,10 @@ $app-bar-h:    56px;
     > .token-card__stat { flex: 1; min-width: 0; }
   }
 
+  &__stat--full {
+    flex-basis: 100%; width: 100%;
+  }
+
   &__stat-label {
     font-size: 0.66rem; color: #9ca3af;
     font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
@@ -528,6 +532,14 @@ $app-bar-h:    56px;
 
 // ── Primary market: don't stretch card body ────────────────
 .token-card--primary .token-card__body { flex: 0 0 auto; padding-top: 16px; }
+
+// ── Primary market: align footer buttons to the right ──────
+.token-card--primary .token-card__footer {
+  flex-direction: row;
+  align-items: center;
+  padding-right: 6px;
+  .token-card__actions { margin-left: auto; flex-direction: column; align-items: flex-end; }
+}
 
 // ── Small action buttons on cards ─────────────────────────
 .tc-btn {
@@ -609,6 +621,7 @@ $app-bar-h:    56px;
     gap: 22px 20px; margin-bottom: 28px;
     dt { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
     dd { font-size: 0.92rem; color: #111; font-weight: 500; margin: 0; }
+    > div.full-span { grid-column: 1 / -1; }
   }
 
   &__price { font-size: 1.1rem; font-weight: 800; color: $primary; }
