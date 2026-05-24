@@ -113,6 +113,18 @@ $text-muted:   #64748b;
   }
 }
 
+// ── Error message ─────────────────────────────────────────────
+.auth-error {
+  padding: $space-3 $space-4;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: $radius-md;
+  color: #b91c1c;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-align: center;
+}
+
 // ── Back link ─────────────────────────────────────────────────
 .back-link {
   display: block;

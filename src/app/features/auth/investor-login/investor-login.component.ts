@@ -21,6 +21,8 @@ export class InvestorLoginComponent implements OnInit {
   registerModel: InvestorCreateDto = { publicKey: '', userName: '', password: '' };
 
   loading = false;
+  loginError = '';
+
   private toast = inject(ToastService);
 
   constructor(
@@ -38,15 +40,18 @@ export class InvestorLoginComponent implements OnInit {
     });
   }
 
-  toggleMode() { this.isRegisterMode = !this.isRegisterMode; }
+  toggleMode() {
+    this.isRegisterMode = !this.isRegisterMode;
+    this.loginError = '';
+  }
 
   onLogin() {
     this.loading = true;
+    this.loginError = '';
     this.investorApi.login(this.loginModel).subscribe({
       next: investor => {
         this.loading = false;
         this.investorState.investor = investor;
-        // If a token was clicked on the home page, go to primary market with that token pending
         const pendingId = this.investorState.pendingTokenId;
         if (pendingId) {
           this.router.navigate(['/marketplace'], { queryParams: { tab: 'primaryMarket', openToken: pendingId } });
@@ -54,7 +59,10 @@ export class InvestorLoginComponent implements OnInit {
           this.router.navigate(['/marketplace']);
         }
       },
-      error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
+      error: () => {
+        this.loading = false;
+        this.loginError = 'Incorrect username or password. Please try again.';
+      }
     });
   }
 

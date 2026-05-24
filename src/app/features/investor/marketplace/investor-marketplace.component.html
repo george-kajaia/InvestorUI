@@ -255,21 +255,39 @@
     </div>
 
     <div class="modal__body">
-      <div class="modal__company">{{ detailToken.companyName }}</div>
+      <div class="modal__company-row">
+        <span class="modal__company">{{ detailToken.companyName }}</span>
+        <span *ngIf="detailTab === 'yourTokens'" class="badge" [class]="statusClass(detailToken.status)">{{ tokenStatusLabel(detailToken.status) }}</span>
+        <span *ngIf="detailTab === 'secondaryMarket'" class="badge badge--blue">Resale</span>
+      </div>
       <h2 class="modal__product">{{ detailToken.productName }}</h2>
 
       <dl class="modal__details">
-        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Status</dt><dd><span class="badge" [class]="statusClass(detailToken.status)">{{ tokenStatusLabel(detailToken.status) }}</span></dd></div>
-        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
-        <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
-        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Start Date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
-        <div *ngIf="detailTab !== 'primaryMarket'"><dt>End Date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
-        <div class="full-span" *ngIf="detailTab === 'primaryMarket' && detailToken.term != null"><dt>Term</dt><dd>{{ detailToken.term }} - Months</dd></div>
-        <div class="full-span" *ngIf="detailTab === 'primaryMarket'"><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
-        <div *ngIf="detailTab !== 'primaryMarket'"><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
-        <div *ngIf="detailTab !== 'primaryMarket' && detailToken.price"><dt>Price</dt><dd class="modal__price">{{ detailToken.price | currency }}</dd></div>
-        <div *ngIf="detailTab === 'secondaryMarket'"><dt>Seller</dt><dd class="mono">{{ detailToken.ownerPublicKey }}</dd></div>
-        <div class="full-span"><dt>Token</dt><dd class="mono">{{ detailToken.id }}</dd></div>
+        <!-- ── My Tokens: same fields and order as the card list ── -->
+        <ng-container *ngIf="detailTab === 'yourTokens'">
+          <div><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
+          <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
+          <div class="full-span"><dt>Start date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
+          <div class="full-span"><dt>End date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
+          <div class="full-span"><dt>Token</dt><dd class="mono">{{ detailToken.id }}</dd></div>
+        </ng-container>
+
+        <!-- ── Primary Market ── -->
+        <ng-container *ngIf="detailTab === 'primaryMarket'">
+          <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
+          <div class="full-span" *ngIf="detailToken.term != null"><dt>Term</dt><dd>{{ detailToken.term }} - Months</dd></div>
+          <div class="full-span"><dt>Schedule</dt><dd>{{ scheduleTypeLabel(detailToken.scheduleType) }}</dd></div>
+          <div class="full-span"><dt>Token</dt><dd class="mono">{{ detailToken.id }}</dd></div>
+        </ng-container>
+
+        <!-- ── Secondary Market ── -->
+        <ng-container *ngIf="detailTab === 'secondaryMarket'">
+          <div><dt>Remaining service count</dt><dd>{{ detailToken.remainingCount }}</dd></div>
+          <div><dt>Total service count</dt><dd>{{ detailToken.serviceCount }}</dd></div>
+          <div class="full-span"><dt>Start date</dt><dd>{{ detailToken.startDate | date:'mediumDate' }}</dd></div>
+          <div class="full-span"><dt>End date</dt><dd>{{ detailToken.endDate ? (detailToken.endDate | date:'mediumDate') : '—' }}</dd></div>
+          <div class="full-span"><dt>Token</dt><dd class="mono">{{ detailToken.id }}</dd></div>
+        </ng-container>
       </dl>
 
       <div class="modal__actions">

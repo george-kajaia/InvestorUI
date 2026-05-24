@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CartService, CartItem } from '../../../core/services/cart.service';
@@ -30,18 +30,24 @@ export class CartComponent implements OnInit {
   checkoutLoading = false;
   checkoutStates: CheckoutItemState[] = [];
 
+  /**
+   * IDs currently being cancelled. Stored as a plain array (not Set) so that
+   * Angular's default change detection picks up mutations via reassignment.
+   */
+  removingIds: string[] = [];
+
   constructor(
     public cartService: CartService,
     private serviceTokenApi: ServiceTokenApiService,
     private investorState: InvestorStateService,
     private router: Router,
-    private dialog: DialogService
+    private dialog: DialogService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     const investor = this.investorState.investor;
     if (!investor) { this.router.navigate(['/login']); return; }
-    // Restore cart from server in case user navigated here directly
     this.cartService.load(investor.publicKey).subscribe({
       error: err => console.error('Failed to load cart:', err)
     });
@@ -73,14 +79,12 @@ export class CartComponent implements OnInit {
     this.checkoutStarted = true;
     this.checkoutLoading = true;
 
-    // Build per-item state list for all cart items (primary and secondary)
     this.checkoutStates = allItems.map(item => ({
       item,
       status: 'pending' as ItemStatus,
       errorMsg: ''
     }));
 
-    // Process each item sequentially so rowVersion conflicts are minimised
     this.processNext(0, investor.publicKey);
   }
 
@@ -88,8 +92,6 @@ export class CartComponent implements OnInit {
     if (index >= this.checkoutStates.length) {
       this.checkoutLoading = false;
       this.checkoutDone = true;
-
-      // Remove successfully purchased items from cart (local only — already bought, no need to CancelInCart)
       const successIds = this.checkoutStates
         .filter(s => s.status === 'success')
         .map(s => s.item.token.id);
@@ -100,9 +102,7 @@ export class CartComponent implements OnInit {
     const state = this.checkoutStates[index];
     state.status = 'processing';
 
-    // Use the token already in the cart (rowVersion was updated when added to cart)
     const token = state.item.token;
-    // OwnerType === 0 means the token belongs to the company (primary); otherwise investor (secondary)
     (token.ownerType === 0
       ? this.serviceTokenApi.buyPrimaryServiceToken(token.id, token.rowVersion, publicKey)
       : this.serviceTokenApi.buySecondaryServiceToken(token.id, token.rowVersion, publicKey)
@@ -113,7 +113,7 @@ export class CartComponent implements OnInit {
         state.errorMsg = typeof msg === 'string' ? msg : (msg?.message ?? 'Purchase failed.');
         return of(null);
       })
-    ).subscribe(result => {
+    ).subscribe(() => {
       if (state.status !== 'error') {
         state.status = 'success';
       }
@@ -121,9 +121,32 @@ export class CartComponent implements OnInit {
     });
   }
 
+  /** Returns true while a CancelInCart API call is in flight for this token id. */
+  isRemoving(id: string): boolean {
+    return this.removingIds.includes(id);
+  }
+
+  /**
+   * Calls CancelInCart via CartService. The BehaviorSubject emission removes the
+   * card from the async-pipe list; reassigning removingIds[] triggers CD for the
+   * button disabled/spinner state.
+   */
   remove(id: string) {
+    if (this.isRemoving(id)) return;
+
+    // Reassign so Angular detects the change
+    this.removingIds = [...this.removingIds, id];
+
     this.cartService.remove(id).subscribe({
-      error: err => console.error('Failed to cancel cart reservation:', err)
+      next: () => {
+        this.removingIds = this.removingIds.filter(x => x !== id);
+        this.cdr.markForCheck();
+      },
+      error: err => {
+        this.removingIds = this.removingIds.filter(x => x !== id);
+        this.cdr.markForCheck();
+        console.error('Failed to cancel cart reservation:', err);
+      }
     });
   }
 
