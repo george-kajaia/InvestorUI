@@ -73,19 +73,10 @@ export class CartComponent implements OnInit {
     const investor = this.investorState.investor;
     if (!investor) { this.router.navigate(['/login']); return; }
 
-    const allItems = this.cartService.items;
-    if (allItems.length === 0) return;
+    if (this.cartService.items.length === 0) return;
 
-    this.checkoutStarted = true;
-    this.checkoutLoading = true;
-
-    this.checkoutStates = allItems.map(item => ({
-      item,
-      status: 'pending' as ItemStatus,
-      errorMsg: ''
-    }));
-
-    this.processNext(0, investor.publicKey);
+    // Payment now happens on the dedicated checkout page (TBC redirect flow).
+    this.router.navigate(['/checkout']);
   }
 
   private processNext(index: number, publicKey: string) {

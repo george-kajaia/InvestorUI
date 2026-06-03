@@ -1,0 +1,65 @@
+<div class="checkout-page">
+
+  <!-- ── Top bar ─────────────────────────────────────────── -->
+  <header class="checkout-header">
+    <button class="checkout-header__back" (click)="goToCart()" [disabled]="redirecting">← Back to cart</button>
+    <h1 class="checkout-header__title">Checkout</h1>
+  </header>
+
+  <!-- ── Loading ─────────────────────────────────────────── -->
+  <div class="checkout-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading your cart…</p>
+  </div>
+
+  <!-- ── Empty ───────────────────────────────────────────── -->
+  <div class="checkout-state" *ngIf="!loading && payableItems.length === 0">
+    <div class="checkout-state__icon">🧾</div>
+    <h2>Nothing to pay for</h2>
+    <p>Your cart has no primary-market tokens to purchase.</p>
+    <button class="btn btn--primary" (click)="goToCart()">Back to cart</button>
+  </div>
+
+  <!-- ── Order summary ───────────────────────────────────── -->
+  <div class="checkout-body" *ngIf="!loading && payableItems.length > 0">
+    <section class="summary">
+      <h2 class="summary__heading">Order summary</h2>
+
+      <ul class="summary__list">
+        <li class="summary__row" *ngFor="let i of payableItems">
+          <div class="summary__thumb">
+            <img *ngIf="pictogramSrc(i.token)" [src]="pictogramSrc(i.token)" [alt]="i.token.productName" />
+            <div *ngIf="!pictogramSrc(i.token)" class="summary__thumb-placeholder">◈</div>
+          </div>
+          <div class="summary__info">
+            <span class="summary__product">{{ i.token.productName }}</span>
+            <span class="summary__company">{{ i.token.companyName }}</span>
+          </div>
+          <div class="summary__price">{{ i.token.price | currency:currency:'symbol':'1.2-2' }}</div>
+        </li>
+      </ul>
+
+      <div class="summary__total">
+        <span>Total</span>
+        <span class="summary__total-value">{{ total | currency:currency:'symbol':'1.2-2' }}</span>
+      </div>
+
+      <p class="summary__note" *ngIf="secondaryItems.length > 0">
+        {{ secondaryItems.length }} secondary-market item{{ secondaryItems.length !== 1 ? 's are' : ' is' }}
+        not payable here and will stay in your cart.
+      </p>
+    </section>
+
+    <section class="pay-panel">
+      <button class="btn btn--pay" (click)="pay()" [disabled]="redirecting">
+        <span *ngIf="!redirecting">Pay {{ total | currency:currency:'symbol':'1.2-2' }}</span>
+        <span *ngIf="redirecting" class="pay-panel__loading"><span class="spinner spinner--sm"></span> Redirecting…</span>
+      </button>
+      <p class="pay-panel__secure">
+        🔒 You'll be redirected to TBC Bank's secure checkout to complete the payment.
+        Items are charged one at a time.
+      </p>
+    </section>
+  </div>
+
+</div>
