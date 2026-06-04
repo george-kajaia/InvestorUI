@@ -8,13 +8,6 @@
       <p>Please wait while we check the result with the bank. Don't close this page.</p>
     </ng-container>
 
-    <!-- ── Continuing to next item ───────────────────────── -->
-    <ng-container *ngIf="state === 'continuing'">
-      <div class="spinner"></div>
-      <h1>Payment confirmed</h1>
-      <p>Taking you to the secure checkout for the next item…</p>
-    </ng-container>
-
     <!-- ── Done (summary) ────────────────────────────────── -->
     <ng-container *ngIf="state === 'done'">
       <div class="icon" [class.icon--success]="failedCount === 0" [class.icon--mixed]="failedCount > 0">

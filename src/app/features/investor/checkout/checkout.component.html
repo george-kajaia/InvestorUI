@@ -2,26 +2,26 @@
 
   <!-- ── Top bar ─────────────────────────────────────────── -->
   <header class="checkout-header">
-    <button class="checkout-header__back" (click)="goToCart()" [disabled]="redirecting">← Back to cart</button>
+    <button class="checkout-header__back" (click)="goToCart()" [disabled]="state === 'paying'">← Back to cart</button>
     <h1 class="checkout-header__title">Checkout</h1>
   </header>
 
   <!-- ── Loading ─────────────────────────────────────────── -->
-  <div class="checkout-state" *ngIf="loading">
+  <div class="checkout-state" *ngIf="state === 'loading'">
     <div class="spinner"></div>
     <p>Loading your cart…</p>
   </div>
 
   <!-- ── Empty ───────────────────────────────────────────── -->
-  <div class="checkout-state" *ngIf="!loading && payableItems.length === 0">
+  <div class="checkout-state" *ngIf="state === 'empty'">
     <div class="checkout-state__icon">🧾</div>
     <h2>Nothing to pay for</h2>
     <p>Your cart has no primary-market tokens to purchase.</p>
     <button class="btn btn--primary" (click)="goToCart()">Back to cart</button>
   </div>
 
-  <!-- ── Order summary ───────────────────────────────────── -->
-  <div class="checkout-body" *ngIf="!loading && payableItems.length > 0">
+  <!-- ── Order summary (ready to pay) ────────────────────── -->
+  <div class="checkout-body" *ngIf="state === 'summary'">
     <section class="summary">
       <h2 class="summary__heading">Order summary</h2>
 
@@ -51,15 +51,72 @@
     </section>
 
     <section class="pay-panel">
-      <button class="btn btn--pay" (click)="pay()" [disabled]="redirecting">
-        <span *ngIf="!redirecting">Pay {{ total | currency:currency:'symbol':'1.2-2' }}</span>
-        <span *ngIf="redirecting" class="pay-panel__loading"><span class="spinner spinner--sm"></span> Redirecting…</span>
+      <button class="btn btn--pay" (click)="pay()">
+        Pay {{ total | currency:currency:'symbol':'1.2-2' }}
       </button>
       <p class="pay-panel__secure">
-        🔒 You'll be redirected to TBC Bank's secure checkout to complete the payment.
-        Items are charged one at a time.
+        🔒 Pay securely with your card right here — powered by Flitt. Items are charged one at a time.
       </p>
     </section>
+  </div>
+
+  <!-- ── Paying (embedded Flitt widget) ──────────────────── -->
+  <div class="checkout-body" *ngIf="state === 'paying'">
+    <section class="embedded">
+      <div class="embedded__progress" *ngIf="currentItem">
+        <span class="embedded__product">{{ currentItem.productName }}</span>
+        <span class="embedded__company">{{ currentItem.companyName }}</span>
+        <span class="embedded__step">{{ progressText }}</span>
+      </div>
+
+      <!-- Flitt mounts its checkout form into this container; no redirect leaves the page. -->
+      <div id="flitt-checkout" class="embedded__widget"></div>
+
+      <p class="embedded__hint">
+        After paying, this page confirms the result automatically — please don't close it.
+      </p>
+    </section>
+  </div>
+
+  <!-- ── Pending / could not confirm ─────────────────────── -->
+  <div class="checkout-state" *ngIf="state === 'pending'">
+    <div class="icon icon--pending">…</div>
+    <h2>Still processing</h2>
+    <p>We couldn't confirm your payment yet. This can take a moment.</p>
+    <div class="actions">
+      <button class="btn btn--primary" (click)="retry()">Check again</button>
+      <button class="btn btn--ghost" (click)="goToCart()">View Cart</button>
+    </div>
+  </div>
+
+  <!-- ── Done (summary) ──────────────────────────────────── -->
+  <div class="checkout-state" *ngIf="state === 'done'">
+    <div class="icon" [class.icon--success]="failedCount === 0" [class.icon--mixed]="failedCount > 0">
+      {{ failedCount === 0 ? '✓' : '!' }}
+    </div>
+    <h2>{{ failedCount === 0 ? 'Payment complete' : 'Checkout finished' }}</h2>
+    <p *ngIf="successCount > 0">
+      {{ successCount }} token{{ successCount !== 1 ? 's' : '' }} purchased successfully.
+    </p>
+    <p *ngIf="failedCount > 0" class="muted">
+      {{ failedCount }} item{{ failedCount !== 1 ? 's were' : ' was' }} not completed.
+    </p>
+
+    <ul class="result-list" *ngIf="results.length > 0">
+      <li class="result-row" *ngFor="let r of results">
+        <span class="result-row__name">{{ r.productName }}</span>
+        <span class="result-row__badge"
+              [class.result-row__badge--success]="r.outcome === 'success'"
+              [class.result-row__badge--failed]="r.outcome !== 'success'">
+          {{ r.outcome === 'success' ? 'Purchased' : (r.outcome === 'cancelled' ? 'Cancelled' : 'Failed') }}
+        </span>
+      </li>
+    </ul>
+
+    <div class="actions">
+      <button class="btn btn--primary" (click)="goToMarketplace()">Go to Marketplace</button>
+      <button class="btn btn--ghost" (click)="goToCart()">View Cart</button>
+    </div>
   </div>
 
 </div>

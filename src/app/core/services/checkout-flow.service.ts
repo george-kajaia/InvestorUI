@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError, timer } from 'rxjs';
+import { Observable, throwError, timer } from 'rxjs';
 import { concatMap, filter, map, take, tap, timeout } from 'rxjs/operators';
 import { CartItem, CartService } from './cart.service';
 import { PaymentApiService } from '../api/payment-api.service';
-import { PaymentStatusResult, isFinalStatus } from '../../shared/models/payment.model';
+import {
+  InitiateEmbeddedPaymentResult,
+  PaymentStatusResult,
+  isFinalStatus
+} from '../../shared/models/payment.model';
 
 export interface CheckoutQueueItem {
   tokenId: string;
@@ -16,7 +20,7 @@ export interface CheckoutQueueItem {
 export interface CheckoutItemResult {
   tokenId: string;
   productName: string;
-  payId?: string;
+  orderId?: string;
   outcome: 'success' | 'failed' | 'cancelled';
 }
 
@@ -24,20 +28,23 @@ interface CheckoutSession {
   publicKey: string;
   queue: CheckoutQueueItem[];
   index: number;
-  currentPayId?: string;
+  currentOrderId?: string;
+  currentToken?: string;
   results: CheckoutItemResult[];
 }
 
 /**
- * Drives the checkout across the TBC redirect round-trip. Because TBC processes one
- * payment per redirect, cart items are paid sequentially: the session (queue + progress)
- * is persisted to sessionStorage so it survives the redirect back to /payment/return.
+ * Drives an embedded Flitt checkout across the cart. The buyer never leaves the page: each
+ * primary-market item is paid in turn by rendering the Flitt widget with a fresh order token
+ * and polling the backend until the order reaches a terminal status. The session (queue +
+ * progress) is persisted to sessionStorage so it can be resumed if a hard redirect ever occurs
+ * (e.g. an external 3-D Secure step that lands back on /payment/return).
  */
 @Injectable({ providedIn: 'root' })
 export class CheckoutFlowService {
   private readonly KEY = 'checkout_session';
   private readonly POLL_INTERVAL_MS = 2000;
-  private readonly POLL_TIMEOUT_MS = 60000;
+  private readonly POLL_TIMEOUT_MS = 600000; // 10 min — buyer may be entering card / 3DS
 
   constructor(
     private paymentApi: PaymentApiService,
@@ -100,44 +107,51 @@ export class CheckoutFlowService {
   }
 
   /**
-   * Initiates the payment for the current queue item and redirects the browser to the
-   * TBC checkout page. The returned observable completes just before the redirect.
+   * Creates the Flitt order for the current queue item and returns the checkout token the
+   * caller renders into the embedded widget. The order id is stored for polling.
    */
-  initiateCurrent(): Observable<void> {
+  initiateCurrent(): Observable<InitiateEmbeddedPaymentResult> {
     const s = this.getSession();
     if (!s) return throwError(() => new Error('No active checkout session.'));
-    if (s.index >= s.queue.length) return of(undefined);
+    if (s.index >= s.queue.length) return throwError(() => new Error('Nothing left to pay.'));
 
     const item = s.queue[s.index];
     return this.paymentApi
-      .initiatePrimaryPayment(item.tokenId, item.rowVersion, s.publicKey)
+      .initiateEmbeddedPayment(item.tokenId, item.rowVersion, s.publicKey)
       .pipe(
         tap(res => {
-          if (!res.approvalUrl) {
-            throw new Error('No checkout URL returned by the bank.');
-          }
-          s.currentPayId = res.payId;
+          if (!res.token) throw new Error('No checkout token returned.');
+          s.currentOrderId = res.orderId;
+          s.currentToken = res.token;
           this.save(s);
-          window.location.href = res.approvalUrl;
-        }),
-        map(() => undefined)
+        })
       );
   }
 
+  /** The Flitt checkout token for the in-flight order, if any (used to (re)render the widget). */
+  get currentToken(): string | null {
+    return this.getSession()?.currentToken ?? null;
+  }
+
+  /** True when an order has been initiated and is awaiting a terminal status. */
+  hasPendingOrder(): boolean {
+    return !!this.getSession()?.currentOrderId;
+  }
+
   /**
-   * Polls the current payId until a terminal status, records the outcome, drops the
+   * Polls the current order until it reaches a terminal status, records the outcome, drops the
    * token from the cart on success, and advances the queue.
    */
   resolveCurrent(): Observable<CheckoutItemResult> {
     const s = this.getSession();
-    if (!s || !s.currentPayId) {
+    if (!s || !s.currentOrderId) {
       return throwError(() => new Error('No payment to resolve.'));
     }
 
-    const payId = s.currentPayId;
+    const orderId = s.currentOrderId;
     const item = s.queue[s.index];
 
-    return this.pollUntilFinal(payId).pipe(
+    return this.pollUntilFinal(orderId).pipe(
       map(status => {
         const outcome: CheckoutItemResult['outcome'] =
           status.status === 'Succeeded' ? 'success'
@@ -147,7 +161,7 @@ export class CheckoutFlowService {
         const result: CheckoutItemResult = {
           tokenId: item.tokenId,
           productName: item.productName,
-          payId,
+          orderId,
           outcome
         };
 
@@ -157,19 +171,20 @@ export class CheckoutFlowService {
 
         s.results.push(result);
         s.index += 1;
-        s.currentPayId = undefined;
+        s.currentOrderId = undefined;
+        s.currentToken = undefined;
         this.save(s);
         return result;
       })
     );
   }
 
-  private pollUntilFinal(payId: string): Observable<PaymentStatusResult> {
+  private pollUntilFinal(orderId: string): Observable<PaymentStatusResult> {
     return timer(0, this.POLL_INTERVAL_MS).pipe(
-      concatMap(() => this.paymentApi.getStatus(payId)),
+      concatMap(() => this.paymentApi.getStatus(orderId)),
       filter(r => isFinalStatus(r.status)),   // ignore non-terminal states
       take(1),                                // complete on the first terminal status
-      timeout({ first: this.POLL_TIMEOUT_MS }) // error if none arrives in time → caller shows "still processing"
+      timeout({ first: this.POLL_TIMEOUT_MS })
     );
   }
 }

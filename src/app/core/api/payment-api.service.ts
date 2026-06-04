@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { InitiatePaymentResult, PaymentStatusResult } from '../../shared/models/payment.model';
+import { InitiateEmbeddedPaymentResult, PaymentStatusResult } from '../../shared/models/payment.model';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentApiService {
@@ -11,36 +11,36 @@ export class PaymentApiService {
 
   constructor(private http: HttpClient) {}
 
-  /** Creates a TBC payment for an in-cart token and returns the checkout redirect URL. */
-  initiatePrimaryPayment(
+  /** Creates a Flitt order for an in-cart token and returns the embedded-checkout token. */
+  initiateEmbeddedPayment(
     serviceTokenId: string,
     rowVersion: number,
     investorPublicKey: string
-  ): Observable<InitiatePaymentResult> {
-    return this.http.post<any>(`${this.baseUrl}/InitiatePrimaryPayment`, null, {
+  ): Observable<InitiateEmbeddedPaymentResult> {
+    return this.http.post<any>(`${this.baseUrl}/InitiateEmbeddedPayment`, null, {
       params: { serviceTokenId, rowVersion: rowVersion.toString(), investorPublicKey }
     }).pipe(map(r => this.normalizeInitiate(r)));
   }
 
-  /** Polls the current status of a payment by its payId. */
-  getStatus(payId: string): Observable<PaymentStatusResult> {
+  /** Polls the current status of a payment by its order id. */
+  getStatus(orderId: string): Observable<PaymentStatusResult> {
     return this.http.get<any>(`${this.baseUrl}/GetStatus`, {
-      params: { payId }
+      params: { orderId }
     }).pipe(map(r => this.normalizeStatus(r)));
   }
 
   // ASP.NET Core may serialize either camelCase or PascalCase depending on config,
   // so accept both — matching the pattern used by ServiceTokenApiService.
-  private normalizeInitiate(raw: any): InitiatePaymentResult {
+  private normalizeInitiate(raw: any): InitiateEmbeddedPaymentResult {
     return {
-      payId:       raw?.payId       ?? raw?.PayId,
-      approvalUrl: raw?.approvalUrl ?? raw?.ApprovalUrl
+      orderId: raw?.orderId ?? raw?.OrderId,
+      token:   raw?.token   ?? raw?.Token
     };
   }
 
   private normalizeStatus(raw: any): PaymentStatusResult {
     return {
-      payId:          raw?.payId          ?? raw?.PayId,
+      orderId:        raw?.orderId        ?? raw?.OrderId,
       serviceTokenId: raw?.serviceTokenId ?? raw?.ServiceTokenId,
       status:         raw?.status         ?? raw?.Status,
       amount:         raw?.amount         ?? raw?.Amount,

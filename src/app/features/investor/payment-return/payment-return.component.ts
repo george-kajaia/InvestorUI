@@ -3,8 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CheckoutFlowService, CheckoutItemResult } from '../../../core/services/checkout-flow.service';
 
-type ViewState = 'verifying' | 'continuing' | 'done' | 'pending' | 'noSession';
+type ViewState = 'verifying' | 'done' | 'pending' | 'noSession';
 
+/**
+ * Landing page for the rare case where the embedded Flitt checkout performs a hard redirect
+ * (e.g. an external 3-D Secure step) instead of resolving inline. It confirms the in-flight
+ * order, then either returns to /checkout to finish any remaining items or shows the summary.
+ */
 @Component({
   selector: 'app-payment-return',
   standalone: true,
@@ -23,24 +28,21 @@ export class PaymentReturnComponent implements OnInit {
 
   ngOnInit(): void {
     const session = this.checkoutFlow.getSession();
-    if (!session || !session.currentPayId) {
+    if (!session || !session.currentOrderId) {
       this.state = 'noSession';
       return;
     }
     this.verify();
   }
 
-  /** Polls the current payment to a terminal state, then continues or finishes. */
+  /** Polls the current order to a terminal state, then continues or finishes. */
   verify(): void {
     this.state = 'verifying';
     this.checkoutFlow.resolveCurrent().subscribe({
       next: () => {
         if (this.checkoutFlow.hasMore()) {
-          // More items to pay — initiate the next one and redirect to TBC.
-          this.state = 'continuing';
-          this.checkoutFlow.initiateCurrent().subscribe({
-            error: () => this.finish()  // can't continue → show what we have so far
-          });
+          // More items to pay — resume the embedded flow on the checkout page.
+          this.router.navigate(['/checkout']);
         } else {
           this.finish();
         }

@@ -1,8 +1,9 @@
-// Models for the TBC payment flow (mirrors the .NET PaymentController DTOs).
+// Models for the Flitt embedded checkout flow (mirrors the .NET PaymentController DTOs).
 
-export interface InitiatePaymentResult {
-  payId: string;
-  approvalUrl: string;
+/** Result of initiating a payment: the order id we poll on, and the Flitt checkout token. */
+export interface InitiateEmbeddedPaymentResult {
+  orderId: string;
+  token: string;
 }
 
 // Mirrors the backend PaymentStatus enum (serialized as its name string).
@@ -16,7 +17,7 @@ export type PaymentStatusValue =
   | 'Cancelled';
 
 export interface PaymentStatusResult {
-  payId: string;
+  orderId: string;
   serviceTokenId: string;
   status: PaymentStatusValue | string;
   amount: number;
