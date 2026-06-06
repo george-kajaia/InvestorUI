@@ -148,9 +148,6 @@
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
           <div class="token-card__actions" (click)="$event.stopPropagation()">
-            <button class="tc-btn tc-btn--sm tc-btn--green"
-              [disabled]="cartService.has(t.id)"
-              (click)="buyPrimary(t)">Buy Now</button>
             <button class="tc-btn tc-btn--sm tc-btn--outline"
               [class.tc-btn--in-cart]="cartService.has(t.id)"
               [disabled]="cartService.has(t.id)"
@@ -201,9 +198,6 @@
         <div class="token-card__footer">
           <span class="token-card__id">Token #{{ t.id | slice:0:8 }}…</span>
           <div class="token-card__actions" (click)="$event.stopPropagation()">
-            <button class="tc-btn tc-btn--sm tc-btn--green"
-              [disabled]="cartService.has(t.id)"
-              (click)="buySecondary(t)">Buy Now</button>
             <button class="tc-btn tc-btn--sm tc-btn--outline"
               [class.tc-btn--in-cart]="cartService.has(t.id)"
               [disabled]="cartService.has(t.id)"
@@ -300,8 +294,6 @@
 
         <!-- Primary Market actions -->
         <ng-container *ngIf="detailTab === 'primaryMarket'">
-          <button class="tc-btn tc-btn--green" (click)="buyPrimary(detailToken)"
-            [disabled]="cartService.has(detailToken.id)">Buy Now</button>
           <button class="tc-btn tc-btn--outline" [class.tc-btn--in-cart]="cartService.has(detailToken.id)"
             [disabled]="cartService.has(detailToken.id)"
             (click)="addToCart(detailToken)">
@@ -311,8 +303,6 @@
 
         <!-- Secondary Market actions -->
         <ng-container *ngIf="detailTab === 'secondaryMarket'">
-          <button class="tc-btn tc-btn--green" (click)="buySecondary(detailToken)"
-            [disabled]="cartService.has(detailToken.id)">Buy Now</button>
           <button class="tc-btn tc-btn--outline" [class.tc-btn--in-cart]="cartService.has(detailToken.id)"
             [disabled]="cartService.has(detailToken.id)"
             (click)="addToCart(detailToken)">

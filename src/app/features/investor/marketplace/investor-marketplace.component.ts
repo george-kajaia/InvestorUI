@@ -240,9 +240,14 @@ export class InvestorMarketplaceComponent implements OnInit {
   closeDetail() { this.detailToken = null; }
 
   addToCart(token: ServiceTokenDto) {
-    const market = this.detailTab === 'primaryMarket' ? 'primaryMarket' : 'secondaryMarket';
+    // Use the modal's tab when adding from the detail view, otherwise the active grid tab.
+    const tab = this.detailToken ? this.detailTab : this.activeTab;
+    const market: CartMarket = tab === 'secondaryMarket' ? 'secondaryMarket' : 'primaryMarket';
     this.cartService.add(token, market, this.investorPublicKey).subscribe({
-      next: () => this.toast.success(`"${token.productName}" added to cart.`),
+      next: () => {
+        this.toast.success(`"${token.productName}" added to cart.`);
+        this.closeDetail();   // dismiss the detail modal, just like the Close button
+      },
       error: err => this.toast.error(err?.error?.message ?? err?.error ?? 'Failed to add token to cart.')
     });
   }
@@ -281,7 +286,7 @@ export class InvestorMarketplaceComponent implements OnInit {
     }
   }
 
-  // ── Mark / Cancel / Buy ────────────────────────────────────
+  // ── Mark / Cancel ─────────────────────────────────────────────────────────────────────────
   markForResell(t: ServiceTokenDto, event?: Event) {
     event?.stopPropagation();
     this.loading = true;
@@ -315,41 +320,11 @@ export class InvestorMarketplaceComponent implements OnInit {
     });
   }
 
-  buyPrimary(t: ServiceTokenDto, event?: Event) {
-    event?.stopPropagation();
-    this.loading = true;
-    this.serviceTokenApi.buyPrimaryServiceToken(t.id, t.rowVersion, this.investorPublicKey).subscribe({
-      next: _ => {
-        this.loading = false;
-        this.toast.success('Token purchased!');
-        this.closeDetail();
-        this.loadYourTokens(true);
-        this.loadPrimaryMarket(true);
-      },
-      error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
-    });
-  }
-
   loadSecondaryMarket(silent = false) {
     this.loading = true;
     this.serviceTokenApi.getSecondaryMarketServiceTokens(this.investorPublicKey, this.marketCompanyId, this.marketRequestId).subscribe({
       next: list => { this.secondaryMarketTokens = list ?? []; this.loading = false; },
       error: () => { this.loading = false; if (!silent) this.toast.errorWithRetry('Failed to load secondary market.', () => this.loadSecondaryMarket()); }
-    });
-  }
-
-  buySecondary(t: ServiceTokenDto, event?: Event) {
-    event?.stopPropagation();
-    this.loading = true;
-    this.serviceTokenApi.buySecondaryServiceToken(t.id, t.rowVersion, this.investorPublicKey).subscribe({
-      next: _ => {
-        this.loading = false;
-        this.toast.success('Token purchased!');
-        this.closeDetail();
-        this.loadYourTokens(true);
-        this.loadSecondaryMarket(true);
-      },
-      error: err => { this.loading = false; this.toast.error(err.error?.message ?? err.error); }
     });
   }
 

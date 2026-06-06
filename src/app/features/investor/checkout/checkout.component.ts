@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CartItem, CartService } from '../../../core/services/cart.service';
-import { CheckoutFlowService, CheckoutItemResult, CheckoutQueueItem } from '../../../core/services/checkout-flow.service';
+import { CheckoutFlowService, CheckoutItemResult } from '../../../core/services/checkout-flow.service';
 import { FlittCheckoutService } from '../../../core/services/flitt-checkout.service';
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -24,7 +24,6 @@ export class CheckoutComponent implements OnInit {
   payableItems: CartItem[] = [];
   secondaryItems: CartItem[] = [];
 
-  currentItem: CheckoutQueueItem | null = null;
   results: CheckoutItemResult[] = [];
 
   private readonly CONTAINER = '#flitt-checkout';
@@ -55,9 +54,9 @@ export class CheckoutComponent implements OnInit {
   private afterCartLoaded(): void {
     this.refreshItems();
 
-    // Resume an in-flight checkout (e.g. after an external 3-D Secure redirect).
-    if (this.checkoutFlow.hasPendingOrder() || this.checkoutFlow.hasMore()) {
-      this.processQueue();
+    // Resume an in-flight order (e.g. after an external 3-D Secure redirect).
+    if (this.checkoutFlow.hasPendingOrder()) {
+      this.processOrder();
       return;
     }
 
@@ -79,10 +78,13 @@ export class CheckoutComponent implements OnInit {
     return 'GEL';
   }
 
-  get progressText(): string {
-    const s = this.checkoutFlow.getSession();
-    if (!s) return '';
-    return `Item ${Math.min(s.index + 1, s.queue.length)} of ${s.queue.length}`;
+  /** How many tokens the single payment covers (used in the 'paying' view). */
+  get payingCount(): number {
+    return this.checkoutFlow.itemCount;
+  }
+
+  get payingTotal(): number {
+    return this.checkoutFlow.total;
   }
 
   pay(): void {
@@ -94,39 +96,37 @@ export class CheckoutComponent implements OnInit {
       this.toast.warning('There are no payable items in your cart.');
       return;
     }
-    this.processQueue();
+    this.processOrder();
   }
 
-  /** Pays every queued item in turn with its own embedded Flitt widget. */
-  private async processQueue(): Promise<void> {
+  /** Pays for the whole cart with a single embedded Flitt widget / one charge. */
+  private async processOrder(): Promise<void> {
     this.state = 'paying';
 
-    while (this.checkoutFlow.hasMore()) {
-      this.currentItem = this.checkoutFlow.current;
-
-      // If we don't yet have a token for this item (fresh item, not a resume), create the order.
-      if (!this.checkoutFlow.hasPendingOrder()) {
-        try {
-          await firstValueFrom(this.checkoutFlow.initiateCurrent());
-        } catch (err: any) {
-          this.toast.error(this.errorText(err, 'Could not start the payment.'));
-          this.finish();
-          return;
-        }
-      }
-
-      const token = this.checkoutFlow.currentToken;
-      if (token) {
-        await this.renderWidget(token);
-      }
-
+    // Create the single order if we don't already have one (fresh checkout, not a resume).
+    if (!this.checkoutFlow.hasPendingOrder()) {
       try {
-        await firstValueFrom(this.checkoutFlow.resolveCurrent());
-      } catch {
-        // Timed out waiting for a terminal status — keep the session so the buyer can retry.
-        this.state = 'pending';
+        await firstValueFrom(this.checkoutFlow.initiate());
+      } catch (err: any) {
+        this.toast.error(this.errorText(err, 'Could not start the payment.'));
+        this.checkoutFlow.clear();
+        this.refreshItems();
+        this.state = this.payableItems.length === 0 ? 'empty' : 'summary';
         return;
       }
+    }
+
+    const token = this.checkoutFlow.currentToken;
+    if (token) {
+      await this.renderWidget(token);
+    }
+
+    try {
+      await firstValueFrom(this.checkoutFlow.resolve());
+    } catch {
+      // Timed out waiting for a terminal status — keep the session so the buyer can retry.
+      this.state = 'pending';
+      return;
     }
 
     this.finish();
@@ -145,13 +145,12 @@ export class CheckoutComponent implements OnInit {
 
   /** Continue polling / retry after a "pending" timeout. */
   retry(): void {
-    this.processQueue();
+    this.processOrder();
   }
 
   private finish(): void {
     this.results = this.checkoutFlow.results();
     this.checkoutFlow.clear();
-    this.currentItem = null;
     this.state = 'done';
   }
 

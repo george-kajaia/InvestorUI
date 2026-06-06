@@ -55,7 +55,7 @@
         Pay {{ total | currency:currency:'symbol':'1.2-2' }}
       </button>
       <p class="pay-panel__secure">
-        🔒 Pay securely with your card right here — powered by Flitt. Items are charged one at a time.
+        🔒 Pay securely with your card right here — powered by Flitt. Your whole cart is charged in a single payment.
       </p>
     </section>
   </div>
@@ -63,10 +63,13 @@
   <!-- ── Paying (embedded Flitt widget) ──────────────────── -->
   <div class="checkout-body" *ngIf="state === 'paying'">
     <section class="embedded">
-      <div class="embedded__progress" *ngIf="currentItem">
-        <span class="embedded__product">{{ currentItem.productName }}</span>
-        <span class="embedded__company">{{ currentItem.companyName }}</span>
-        <span class="embedded__step">{{ progressText }}</span>
+      <div class="embedded__progress" *ngIf="payingCount > 0">
+        <span class="embedded__product">
+          Paying for {{ payingCount }} token{{ payingCount !== 1 ? 's' : '' }}
+        </span>
+        <span class="embedded__step">
+          Total {{ payingTotal | currency:currency:'symbol':'1.2-2' }}
+        </span>
       </div>
 
       <!-- Flitt mounts its checkout form into this container; no redirect leaves the page. -->

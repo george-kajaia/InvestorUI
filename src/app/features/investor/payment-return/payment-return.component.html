@@ -49,15 +49,5 @@
       </div>
     </ng-container>
 
-    <!-- ── No active session ─────────────────────────────── -->
-    <ng-container *ngIf="state === 'noSession'">
-      <div class="icon icon--pending">🧾</div>
-      <h1>No active payment</h1>
-      <p>There's no checkout in progress.</p>
-      <div class="actions">
-        <button class="btn btn--primary" (click)="goToMarketplace()">Go to Marketplace</button>
-      </div>
-    </ng-container>
-
   </div>
 </div>

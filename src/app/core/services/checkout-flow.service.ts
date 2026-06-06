@@ -5,8 +5,8 @@ import { CartItem, CartService } from './cart.service';
 import { PaymentApiService } from '../api/payment-api.service';
 import {
   InitiateEmbeddedPaymentResult,
-  PaymentStatusResult,
-  isFinalStatus
+  PaymentBatchStatusResult,
+  PaymentTokenRef
 } from '../../shared/models/payment.model';
 
 export interface CheckoutQueueItem {
@@ -26,18 +26,18 @@ export interface CheckoutItemResult {
 
 interface CheckoutSession {
   publicKey: string;
-  queue: CheckoutQueueItem[];
-  index: number;
+  items: CheckoutQueueItem[];
   currentOrderId?: string;
   currentToken?: string;
   results: CheckoutItemResult[];
 }
 
 /**
- * Drives an embedded Flitt checkout across the cart. The buyer never leaves the page: each
- * primary-market item is paid in turn by rendering the Flitt widget with a fresh order token
- * and polling the backend until the order reaches a terminal status. The session (queue +
- * progress) is persisted to sessionStorage so it can be resumed if a hard redirect ever occurs
+ * Drives an embedded Flitt checkout for the whole cart in a SINGLE payment. All primary-market
+ * items are sent to the backend together, which creates one Flitt order for the summed amount
+ * (one widget, one charge) while still recording each token as its own Payment row. The buyer
+ * never leaves the page; the order is polled until every token reaches a terminal status. The
+ * session is persisted to sessionStorage so it can be resumed if a hard redirect ever occurs
  * (e.g. an external 3-D Secure step that lands back on /payment/return).
  */
 @Injectable({ providedIn: 'root' })
@@ -87,19 +87,23 @@ export class CheckoutFlowService {
 
     if (queue.length === 0) return false;
 
-    this.save({ publicKey, queue, index: 0, results: [] });
+    this.save({ publicKey, items: queue, results: [] });
     return true;
   }
 
-  get current(): CheckoutQueueItem | null {
-    const s = this.getSession();
-    if (!s || s.index >= s.queue.length) return null;
-    return s.queue[s.index];
+  /** The items being paid for in the current order (for display). */
+  get items(): CheckoutQueueItem[] {
+    return this.getSession()?.items ?? [];
   }
 
-  hasMore(): boolean {
-    const s = this.getSession();
-    return !!s && s.index < s.queue.length;
+  /** Number of tokens in the current order. */
+  get itemCount(): number {
+    return this.items.length;
+  }
+
+  /** Summed amount of the current order. */
+  get total(): number {
+    return this.items.reduce((sum, i) => sum + (i.price ?? 0), 0);
   }
 
   results(): CheckoutItemResult[] {
@@ -107,17 +111,21 @@ export class CheckoutFlowService {
   }
 
   /**
-   * Creates the Flitt order for the current queue item and returns the checkout token the
-   * caller renders into the embedded widget. The order id is stored for polling.
+   * Creates the single Flitt order covering every item in the session and returns the checkout
+   * token the caller renders into the embedded widget. The order id is stored for polling.
    */
-  initiateCurrent(): Observable<InitiateEmbeddedPaymentResult> {
+  initiate(): Observable<InitiateEmbeddedPaymentResult> {
     const s = this.getSession();
     if (!s) return throwError(() => new Error('No active checkout session.'));
-    if (s.index >= s.queue.length) return throwError(() => new Error('Nothing left to pay.'));
+    if (s.items.length === 0) return throwError(() => new Error('Nothing to pay for.'));
 
-    const item = s.queue[s.index];
+    const tokens: PaymentTokenRef[] = s.items.map(i => ({
+      serviceTokenId: i.tokenId,
+      rowVersion: i.rowVersion
+    }));
+
     return this.paymentApi
-      .initiateEmbeddedPayment(item.tokenId, item.rowVersion, s.publicKey)
+      .initiateBatch(tokens, s.publicKey)
       .pipe(
         tap(res => {
           if (!res.token) throw new Error('No checkout token returned.');
@@ -133,58 +141,99 @@ export class CheckoutFlowService {
     return this.getSession()?.currentToken ?? null;
   }
 
-  /** True when an order has been initiated and is awaiting a terminal status. */
+  /** True when the order has been initiated and is awaiting a terminal status. */
   hasPendingOrder(): boolean {
     return !!this.getSession()?.currentOrderId;
   }
 
   /**
-   * Polls the current order until it reaches a terminal status, records the outcome, drops the
-   * token from the cart on success, and advances the queue.
+   * Polls the order until every token reaches a terminal status, records each token's outcome,
+   * drops the purchased tokens from the cart, and completes the session.
    */
-  resolveCurrent(): Observable<CheckoutItemResult> {
+  resolve(): Observable<CheckoutItemResult[]> {
     const s = this.getSession();
     if (!s || !s.currentOrderId) {
       return throwError(() => new Error('No payment to resolve.'));
     }
 
     const orderId = s.currentOrderId;
-    const item = s.queue[s.index];
 
     return this.pollUntilFinal(orderId).pipe(
       map(status => {
-        const outcome: CheckoutItemResult['outcome'] =
-          status.status === 'Succeeded' ? 'success'
-            : status.status === 'Cancelled' ? 'cancelled'
-              : 'failed';
+        const byToken = new Map(status.items.map(i => [i.serviceTokenId, i.status]));
 
-        const result: CheckoutItemResult = {
-          tokenId: item.tokenId,
-          productName: item.productName,
-          orderId,
-          outcome
-        };
+        const results: CheckoutItemResult[] = s.items.map(item => {
+          const itemStatus = byToken.get(item.tokenId) ?? 'Failed';
+          const outcome: CheckoutItemResult['outcome'] =
+            itemStatus === 'Succeeded' ? 'success'
+              : itemStatus === 'Cancelled' ? 'cancelled'
+                : 'failed';
 
-        if (outcome === 'success') {
-          this.cart.removeLocal(item.tokenId);
-        }
+          if (outcome === 'success') {
+            this.cart.removeLocal(item.tokenId);
+          }
 
-        s.results.push(result);
-        s.index += 1;
+          return { tokenId: item.tokenId, productName: item.productName, orderId, outcome };
+        });
+
+        s.results = results;
         s.currentOrderId = undefined;
         s.currentToken = undefined;
         this.save(s);
-        return result;
+        return results;
       })
     );
   }
 
-  private pollUntilFinal(orderId: string): Observable<PaymentStatusResult> {
+  private pollUntilFinal(orderId: string): Observable<PaymentBatchStatusResult> {
     return timer(0, this.POLL_INTERVAL_MS).pipe(
       concatMap(() => this.paymentApi.getStatus(orderId)),
-      filter(r => isFinalStatus(r.status)),   // ignore non-terminal states
-      take(1),                                // complete on the first terminal status
+      filter(r => r.final),   // stop only when every token is terminal
+      take(1),                // complete on the first fully-terminal status
       timeout({ first: this.POLL_TIMEOUT_MS })
+    );
+  }
+
+  /**
+   * Confirms an order by id without relying on the in-memory session — used when the buyer
+   * returns via a hard redirect (api/Payment/Return → ?orderId=…) and the session may be gone.
+   * Builds results straight from the server's per-token breakdown; product names are taken from
+   * the session when still present, otherwise a short token label is shown.
+   */
+  resolveByOrderId(orderId: string): Observable<CheckoutItemResult[]> {
+    if (!orderId) return throwError(() => new Error('No order id to resolve.'));
+
+    const s = this.getSession();
+    const nameByToken = new Map((s?.items ?? []).map(i => [i.tokenId, i.productName]));
+
+    return this.pollUntilFinal(orderId).pipe(
+      map(status => {
+        const results: CheckoutItemResult[] = status.items.map(item => {
+          const outcome: CheckoutItemResult['outcome'] =
+            item.status === 'Succeeded' ? 'success'
+              : item.status === 'Cancelled' ? 'cancelled'
+                : 'failed';
+
+          if (outcome === 'success') {
+            this.cart.removeLocal(item.serviceTokenId);
+          }
+
+          return {
+            tokenId: item.serviceTokenId,
+            productName: nameByToken.get(item.serviceTokenId) ?? `Token ${item.serviceTokenId}`,
+            orderId,
+            outcome
+          };
+        });
+
+        if (s) {
+          s.results = results;
+          s.currentOrderId = undefined;
+          s.currentToken = undefined;
+          this.save(s);
+        }
+        return results;
+      })
     );
   }
 }

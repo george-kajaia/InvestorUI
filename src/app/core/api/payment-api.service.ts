@@ -3,7 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { InitiateEmbeddedPaymentResult, PaymentStatusResult } from '../../shared/models/payment.model';
+import {
+  InitiateEmbeddedPaymentResult,
+  PaymentBatchStatusResult,
+  PaymentItemStatus,
+  PaymentTokenRef
+} from '../../shared/models/payment.model';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentApiService {
@@ -11,19 +16,23 @@ export class PaymentApiService {
 
   constructor(private http: HttpClient) {}
 
-  /** Creates a Flitt order for an in-cart token and returns the embedded-checkout token. */
-  initiateEmbeddedPayment(
-    serviceTokenId: string,
-    rowVersion: number,
+  /**
+   * Creates ONE Flitt order covering every supplied in-cart token and returns the embedded
+   * checkout token. The buyer is charged the summed amount once, while each token is still
+   * recorded as its own Payment row server-side.
+   */
+  initiateBatch(
+    tokens: PaymentTokenRef[],
     investorPublicKey: string
   ): Observable<InitiateEmbeddedPaymentResult> {
-    return this.http.post<any>(`${this.baseUrl}/InitiateEmbeddedPayment`, null, {
-      params: { serviceTokenId, rowVersion: rowVersion.toString(), investorPublicKey }
+    return this.http.post<any>(`${this.baseUrl}/InitiateEmbeddedPaymentBatch`, {
+      tokens,
+      investorPublicKey
     }).pipe(map(r => this.normalizeInitiate(r)));
   }
 
-  /** Polls the current status of a payment by its order id. */
-  getStatus(orderId: string): Observable<PaymentStatusResult> {
+  /** Polls the current status of a payment order by its order id. */
+  getStatus(orderId: string): Observable<PaymentBatchStatusResult> {
     return this.http.get<any>(`${this.baseUrl}/GetStatus`, {
       params: { orderId }
     }).pipe(map(r => this.normalizeStatus(r)));
@@ -38,13 +47,20 @@ export class PaymentApiService {
     };
   }
 
-  private normalizeStatus(raw: any): PaymentStatusResult {
+  private normalizeStatus(raw: any): PaymentBatchStatusResult {
+    const rawItems: any[] = raw?.items ?? raw?.Items ?? [];
+    const items: PaymentItemStatus[] = rawItems.map(i => ({
+      serviceTokenId: i?.serviceTokenId ?? i?.ServiceTokenId,
+      status:         i?.status         ?? i?.Status
+    }));
+
     return {
-      orderId:        raw?.orderId        ?? raw?.OrderId,
-      serviceTokenId: raw?.serviceTokenId ?? raw?.ServiceTokenId,
-      status:         raw?.status         ?? raw?.Status,
-      amount:         raw?.amount         ?? raw?.Amount,
-      currency:       raw?.currency       ?? raw?.Currency
+      orderId:  raw?.orderId  ?? raw?.OrderId,
+      status:   raw?.status   ?? raw?.Status,
+      final:    raw?.final    ?? raw?.Final ?? false,
+      amount:   raw?.amount   ?? raw?.Amount ?? 0,
+      currency: raw?.currency ?? raw?.Currency ?? 'GEL',
+      items
     };
   }
 }
