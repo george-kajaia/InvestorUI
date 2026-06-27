@@ -27,6 +27,7 @@ export interface CheckoutItemResult {
 interface CheckoutSession {
   publicKey: string;
   items: CheckoutQueueItem[];
+  saveCard?: boolean;
   currentOrderId?: string;
   currentToken?: string;
   results: CheckoutItemResult[];
@@ -74,7 +75,7 @@ export class CheckoutFlowService {
    * Builds a checkout session from the primary-market items in the cart.
    * Returns false if there is nothing payable (only secondary-market items, or empty).
    */
-  begin(items: CartItem[], publicKey: string): boolean {
+  begin(items: CartItem[], publicKey: string, saveCard: boolean = false): boolean {
     const queue: CheckoutQueueItem[] = items
       .filter(i => i.market === 'primaryMarket')
       .map(i => ({
@@ -87,7 +88,7 @@ export class CheckoutFlowService {
 
     if (queue.length === 0) return false;
 
-    this.save({ publicKey, items: queue, results: [] });
+    this.save({ publicKey, items: queue, saveCard, results: [] });
     return true;
   }
 
@@ -125,7 +126,7 @@ export class CheckoutFlowService {
     }));
 
     return this.paymentApi
-      .initiateBatch(tokens, s.publicKey)
+      .initiateBatch(tokens, s.publicKey, s.saveCard ?? false)
       .pipe(
         tap(res => {
           if (!res.token) throw new Error('No checkout token returned.');

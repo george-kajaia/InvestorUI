@@ -23,11 +23,13 @@ export class PaymentApiService {
    */
   initiateBatch(
     tokens: PaymentTokenRef[],
-    investorPublicKey: string
+    investorPublicKey: string,
+    saveCard: boolean = false
   ): Observable<InitiateEmbeddedPaymentResult> {
     return this.http.post<any>(`${this.baseUrl}/InitiateEmbeddedPaymentBatch`, {
       tokens,
-      investorPublicKey
+      investorPublicKey,
+      saveCard
     }).pipe(map(r => this.normalizeInitiate(r)));
   }
 

@@ -315,3 +315,45 @@ $text-muted:   #6b7280;
   margin-top: 24px;
   flex-wrap: wrap;
 }
+
+// ── Saved card + save-card opt-in ────────────────────────
+.saved-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  background: rgba($success-500, 0.06);
+
+  &__info { display: flex; align-items: center; gap: 10px; }
+  &__icon { font-size: 1.1rem; }
+  &__text { font-weight: 600; }
+
+  &__remove {
+    flex: none;
+    border: none;
+    background: transparent;
+    color: $error-600;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: $radius-sm;
+    &:hover { background: rgba($error-500, 0.12); }
+  }
+}
+
+.save-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  user-select: none;
+
+  input { width: 16px; height: 16px; cursor: pointer; }
+}

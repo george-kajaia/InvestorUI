@@ -51,6 +51,23 @@
     </section>
 
     <section class="pay-panel">
+      <!-- Saved card (masked) — token stored server-side; PAN is never stored or shown. -->
+      <div class="saved-card" *ngIf="savedMethod as m">
+        <div class="saved-card__info">
+          <span class="saved-card__icon">💳</span>
+          <span class="saved-card__text">
+            <ng-container *ngIf="m.cardType">{{ m.cardType }} </ng-container>
+            {{ m.maskedCard || 'Saved card' }}
+          </span>
+        </div>
+        <button class="saved-card__remove" type="button" (click)="removeSavedCard()">Remove</button>
+      </div>
+
+      <label class="save-card">
+        <input type="checkbox" [(ngModel)]="saveCard" />
+        <span>Securely save my card for faster checkout next time</span>
+      </label>
+
       <button class="btn btn--pay" (click)="pay()">
         Pay {{ total | currency:currency:'symbol':'1.2-2' }}
       </button>

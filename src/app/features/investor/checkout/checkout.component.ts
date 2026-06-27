@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CartItem, CartService } from '../../../core/services/cart.service';
@@ -7,6 +8,8 @@ import { CheckoutFlowService, CheckoutItemResult } from '../../../core/services/
 import { FlittCheckoutService } from '../../../core/services/flitt-checkout.service';
 import { InvestorStateService } from '../../../core/state/investor-state.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PaymentMethodApiService } from '../../../core/api/payment-method-api.service';
+import { InvestorPaymentMethod } from '../../../shared/models/payment-method.model';
 import { ServiceTokenDto } from '../../../shared/models/service-token.model';
 
 type ViewState = 'loading' | 'empty' | 'summary' | 'paying' | 'pending' | 'done';
@@ -14,7 +17,7 @@ type ViewState = 'loading' | 'empty' | 'summary' | 'paying' | 'pending' | 'done'
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss']
 })
@@ -26,6 +29,12 @@ export class CheckoutComponent implements OnInit {
 
   results: CheckoutItemResult[] = [];
 
+  /** Buyer opt-in: save the card token for faster future checkout. */
+  saveCard = true;
+
+  /** The investor's currently saved card (if any), shown on the summary. */
+  savedMethod: InvestorPaymentMethod | null = null;
+
   private readonly CONTAINER = '#flitt-checkout';
 
   constructor(
@@ -34,6 +43,7 @@ export class CheckoutComponent implements OnInit {
     private flitt: FlittCheckoutService,
     private investorState: InvestorStateService,
     private toast: ToastService,
+    private paymentMethods: PaymentMethodApiService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -53,6 +63,7 @@ export class CheckoutComponent implements OnInit {
 
   private afterCartLoaded(): void {
     this.refreshItems();
+    this.loadSavedMethod();
 
     // Resume an in-flight order (e.g. after an external 3-D Secure redirect).
     if (this.checkoutFlow.hasPendingOrder()) {
@@ -61,6 +72,33 @@ export class CheckoutComponent implements OnInit {
     }
 
     this.state = this.payableItems.length === 0 ? 'empty' : 'summary';
+  }
+
+  /** Loads the investor's saved card (masked) for display on the summary. Best-effort. */
+  private loadSavedMethod(): void {
+    const investor = this.investorState.investor;
+    if (!investor) return;
+    this.paymentMethods.get(investor.id).subscribe({
+      next: m => {
+        this.savedMethod = m?.hasSavedCard ? m : null;
+        this.cdr.detectChanges();
+      },
+      error: () => { /* non-fatal: just don't show a saved card */ }
+    });
+  }
+
+  /** Removes the saved card token for this investor. */
+  removeSavedCard(): void {
+    const investor = this.investorState.investor;
+    if (!investor) return;
+    this.paymentMethods.remove(investor.id).subscribe({
+      next: () => {
+        this.savedMethod = null;
+        this.toast.success('Saved card removed.');
+        this.cdr.detectChanges();
+      },
+      error: () => this.toast.error('Could not remove the saved card.')
+    });
   }
 
   private refreshItems(): void {
@@ -91,7 +129,7 @@ export class CheckoutComponent implements OnInit {
     const investor = this.investorState.investor;
     if (!investor) { this.router.navigate(['/login']); return; }
 
-    const started = this.checkoutFlow.begin(this.cartService.items, investor.publicKey);
+    const started = this.checkoutFlow.begin(this.cartService.items, investor.publicKey, this.saveCard);
     if (!started) {
       this.toast.warning('There are no payable items in your cart.');
       return;
